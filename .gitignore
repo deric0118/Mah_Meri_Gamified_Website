@@ -1,0 +1,18 @@
+# Operating System Files
+.DS_Store
+Thumbs.db
+
+# Editor Directories
+.vscode/
+.idea/
+
+# Dependencies & Build Files (Tailwind / Node)
+node_modules/
+npm-debug.log
+dist/
+build/
+
+# Firebase
+.firebase/
+firebase-debug.log
+firebase-debug.log.*
