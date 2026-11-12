@@ -1,0 +1,302 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Georgia', 'serif';
+  background: #110e0a;
+  color: #f7e6d0;
+  overflow: hidden;
+}
+
+.view {
+  width: 100vw;
+  height: 100vh;
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+  transition: opacity 0.5s ease-in-out;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* Background overlay overlays & main styling */
+#title-screen {
+  background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.75)), url('../assets/images/map.png') no-repeat center center/cover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+/* Invisible button centered over the video's PLAY graphic */
+#btn-start-invisible {
+  position: absolute;
+  top: 55%; 
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 30%;      
+  min-width: 200px;
+  height: 15%;
+  min-height: 80px;
+  background: transparent; 
+  border: none;
+  cursor: pointer;
+  z-index: 10;
+}
+
+/* Optional: Add a subtle pulse to the cursor when hovering over the invisible button */
+#btn-start-invisible:hover {
+  transform: translate(-50%, -50%) scale(1.05);
+}
+
+.btn-primary:hover {
+  transform: scale(1.05);
+  background: #a32c2c;
+}
+
+/* Overworld Interactive map positioning */
+.map-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  overflow: hidden;
+}
+
+#base-map-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+/* Dynamic Pins on Map */
+.map-pin {
+  position: absolute;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.3s ease;
+  transform: translate(-50%, -50%);
+}
+
+#pin-act1 { top: 38%; left: 32%; }
+#pin-act2 { top: 40%; left: 63%; }
+#pin-act3 { top: 60%; left: 51%; }
+#pin-act4 { top: 65%; left: 62%; }
+
+.pin-marker {
+  font-size: 2rem;
+  background: rgba(26,17,10, 0.9);
+  padding: 10px;
+  border-radius: 50%;
+  border: 3px solid #bfa054;
+  text-align: center;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.6);
+  z-index: 20;
+}
+
+.pin-label {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(10, 10, 10, 0.85);
+  color: #f7e6d0;
+  padding: 4px 10px;
+  font-size: 0.85rem;
+  border-radius: 4px;
+  white-space: nowrap;
+  border: 1px solid #bfa054;
+  margin-top: 5px;
+}
+
+.map-pin.locked {
+  filter: grayscale(100%);
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.map-pin.active .pin-glow {
+  content: '';
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  top: -6px;
+  left: -6px;
+  border: 4px solid #4df3e5;
+  border-radius: 50%;
+  animation: pulse 1.5s infinite;
+  z-index: -1;
+}
+
+@keyframes pulse {
+  0% { transform: scale(0.9); opacity: 1; }
+  100% { transform: scale(1.4); opacity: 0; }
+}
+
+/* Reusable Dialog Container Overlay Style */
+.dialogue-box {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 800px;
+  background: rgba(20, 15, 10, 0.95);
+  border: 3px solid #bfa054;
+  padding: 16px 24px;
+  display: flex;
+  gap: 20px;
+  border-radius: 8px;
+  z-index: 99;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.8);
+}
+
+.dialog-avatar img {
+  width: 80px;
+  height: 80px;
+  border-radius: 8px;
+  border: 2px solid #bfa054;
+  background: #110e0a;
+}
+
+.dialogue-body {
+  flex-grow: 1;
+}
+
+.dialogue-body h3 {
+  color: #4df3e5;
+  margin-bottom: 4px;
+}
+
+.dialogue-text {
+  font-size: 1rem;
+  line-height: 1.5;
+  min-height: 48px;
+}
+
+.dialogue-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.dialogue-actions button, .btn-micro {
+  background: #463c22;
+  border: 1px solid #bfa054;
+  color: #fdd;
+  padding: 4px 12px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+/* Modals Overlay (Drawer-like) */
+.modal-view {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 450px;
+  height: 100vh;
+  background: rgba(18, 12, 6, 0.98);
+  border-left: 4px solid #bfa054;
+  z-index: 150;
+  padding: 30px;
+  box-shadow: -5px 0 25px rgba(0,0,0,0.9);
+}
+
+.modal-content {
+  position: relative;
+  height: 100%;
+}
+
+.modal-close {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: none;
+  border: none;
+  color: #f7e6d0;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+/* HUD styles */
+#hud {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  display: flex;
+  justify-content: space-between;
+  z-index: 100;
+  pointer-events: none;
+}
+
+#hud-actions, #quest-tracker {
+  pointer-events: auto;
+  background: rgba(18, 12, 6, 0.95);
+  border: 1.5px solid #bfa054;
+  border-radius: 4px;
+  padding: 8px 14px;
+}
+
+#hud-actions button {
+  background: #3c3022;
+  border: 1.5px solid #bfa054;
+  color: #f7e6d0;
+  padding: 6px 12px;
+  margin-left: 6px;
+  cursor: pointer;
+}
+
+/* Video Background Styles */
+#title-screen {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background: transparent; /* Forces the section to have no dark tint */
+}
+
+#bg-video {
+  position: absolute;
+  top: 0;           /* Pins the video exactly to the top edge */
+  left: 0;          /* Pins the video to the left edge */
+  width: 100%;      /* Fills the screen width */
+  height: 100%;     /* Fills the screen height */
+  transform: none;  /* Removes the code that was pulling the video upward */
+  z-index: 0;       /* Brings the video forward so it isn't faded behind the body */
+  object-fit: cover;
+  object-position: center top; /* Ensures the Mah Meri title is never cropped */
+}
+
+/* Optional: Adds a dark tint over the video so the text box pops out more */
+.video-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.3); 
+  z-index: -1;
+}
+
+/* Ensure the intro box sits above the video */
+.intro-box {
+  position: relative;
+  z-index: 1;
+  background: rgba(26, 17, 10, 0.95);
+  padding: 40px;
+  border: 4px solid #bfa054;
+  border-radius: 12px;
+  max-width: 600px;
+  box-shadow: 0 0 25px rgba(0,0,0,0.8);
+}

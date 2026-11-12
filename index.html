@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Whispering Threads - Mah Meri Heritage</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- Audio elements -->
+  <audio id="bgm-player" loop src="assets/audio/ambient_nature.mp3"></audio>
+  <audio id="sfx-click" src="assets/audio/click.mp3"></audio>
+  <audio id="sfx-spirit" src="assets/audio/spirit_chime.mp3"></audio>
+
+  <!-- Web HUD (Always present when not on title) -->
+  <div id="hud" class="hidden">
+    <div id="quest-tracker">Quest: <span id="quest-text">Speak with Moyang</span></div>
+    <div id="hud-actions">
+      <button id="btn-archive" onclick="openArchive()">Museum</button>
+      <button id="btn-support" onclick="openPortal()">Support Village</button>
+      <button id="btn-audio-toggle">🔊 Sound</button>
+      <button id="btn-map" class="hidden" onclick="returnToMap()">Back to Map</button>
+    </div>
+  </div>
+
+  <!-- 1. Landing (Title Screen) -->
+  <section id="title-screen" class="view">
+    <!-- Video Background: Removed 'loop' so it plays once -->
+    <video autoplay muted playsinline id="bg-video">
+      <source src="assets/images/mainpage_video.mp4" type="video/mp4">
+    </video>
+    
+    <!-- Invisible button placed over the video's PLAY graphic, hidden by default -->
+    <button id="btn-start-invisible" class="hidden" onclick="startGame()" aria-label="Start Game"></button>
+  </section>
+
+  <!-- 2. Interactive Map (Pulau Carey Overworld Hub) -->
+  <section id="map-screen" class="view hidden">
+    <div class="map-container">
+      <img src="assets/images/map_plain.jpg" alt="Carey Island Map" id="base-map-img">
+      
+      <!-- Pin: Act I Mangroves -->
+      <div id="pin-act1" class="map-pin active" onclick="trySelectAct(1)">
+        <span class="pin-glow"></span>
+        <div class="pin-marker">🍃</div>
+        <div class="pin-label">Mangrove Swamp</div>
+      </div>
+
+      <!-- Pin: Act II Weaver's Hut -->
+      <div id="pin-act2" class="map-pin locked" onclick="trySelectAct(2)">
+        <span class="pin-glow"></span>
+        <div class="pin-marker">🛖</div>
+        <div class="pin-label">Weaver's Hut</div>
+      </div>
+
+      <!-- Pin: Act III Carver's Bench -->
+      <div id="pin-act3" class="map-pin locked" onclick="trySelectAct(3)">
+        <span class="pin-glow"></span>
+        <div class="pin-marker">🪵</div>
+        <div class="pin-label">Carver's Bench</div>
+      </div>
+
+      <!-- Pin: Act IV Ceremonial Grounds -->
+      <div id="pin-act4" class="map-pin locked" onclick="trySelectAct(4)">
+        <span class="pin-glow"></span>
+        <div class="pin-marker">🔥</div>
+        <div class="pin-label">Ceremonial Ground</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. Mini-Game Frame (This will house Game acts & can be safely coded by Member 1) -->
+  <section id="game-stage-screen" class="view hidden">
+    <div class="game-container" id="game-container-inner">
+      <!-- Injects: Act 1: collecting / Act 2: weaving mini game, etc. -->
+      <div id="game-content-mock" class="game-mock-box">
+         <h2 id="mini-game-title">Act I: Mangrove Swamp</h2>
+         <p>Collect materials! (Interact with swamp plants)</p>
+         <button id="mock-success-btn" onclick="simulateGameComplete()">Complete Task</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Reusable Dialog System (Dialogue overlay container overlaying viewports) -->
+  <div id="dialogue-overlay" class="dialogue-box hidden">
+    <div class="dialog-avatar">
+      <img src="assets/images/moyang_token.png" alt="Avatar" id="dialogue-avatar-img">
+    </div>
+    <div class="dialogue-body">
+      <h3 id="dialogue-speaker">Moyang Tok Naning</h3>
+      <div id="dialogue-textbox" class="dialogue-text"></div>
+      <div class="dialogue-actions">
+        <button id="dialogue-skip" onclick="skipDialogue()">Skip</button>
+        <button id="dialogue-next" onclick="nextDialogue()">Next</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sidebar Overlay 1: Museum Spirit Archive -->
+  <div id="archive-modal" class="modal-view hidden">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeArchive()">✕</button>
+      <h2>The Spirit Archive (Museum)</h2>
+      <div class="museum-tabs">
+        <button id="tab-real" class="tab active" onclick="switchMuseumTab('history')">Real History</button>
+        <button id="tab-myth" class="tab" onclick="switchMuseumTab('spirit')">Ancestral Myths</button>
+      </div>
+      <div class="modal-scroll-inner" id="museum-body">
+        <!-- Render card deck (or back and front images with class toggle flip-card) -->
+        <div class="flip-card">
+          <div class="flip-card-inner">
+            <div class="flip-card-front">
+               <h3>Jo'oh Celebration</h3>
+               <p>(Read story preview)</p>
+            </div>
+            <div class="flip-card-back">
+               <p>The traditional dance performed to attract and honour guardian spirits, marking harvest celebrations.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sidebar Overlay 2: Supporting Carey Village -->
+  <div id="portal-modal" class="modal-view hidden">
+     <div class="modal-content">
+       <button class="modal-close" onclick="closePortal()">✕</button>
+       <h2>Support the Mah Meri Community</h2>
+       <p>Connect with living heritage, check real artworks, or directly interact through NGOs and travel hubs.</p>
+       <div class="community-grid">
+         <div class="cta-card">
+           <h4>Mah Meri Cultural Village tour</h4>
+           <a href="https://www.careyisland.my" target="_blank" class="btn-micro">Plan a Visit</a>
+         </div>
+         <div class="cta-card">
+           <h4>Indigenous Crafts Support</h4>
+           <a href="#" target="_blank" class="btn-micro">Buy Crafts</a>
+         </div>
+       </div>
+     </div>
+  </div>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
