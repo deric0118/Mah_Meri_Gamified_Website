@@ -737,8 +737,8 @@ kbd {
 }
 .result-kicker { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.12em; color: #7a4a22; }
 .result-card h2 { color: #4a230e; font-size: clamp(1.2rem, 3.5vw, 1.7rem); }
-.result-images { display: flex; gap: 10px; justify-content: center; height: clamp(70px, 18vh, 140px); }
-.result-images img { height: 100%; max-width: 30%; object-fit: contain; filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.4)); }
+.result-images { display: flex; gap: 14px; justify-content: center; width: 100%; height: clamp(120px, 32vh, 260px); }
+.result-images img { height: 100%; max-width: 32%; min-width: 0; object-fit: contain; filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.4)); }
 .result-card p { font-size: clamp(0.8rem, 2vw, 0.98rem); line-height: 1.4; }
 
 .modal {
