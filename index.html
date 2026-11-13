@@ -2,146 +2,167 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>The Whispering Threads - Mah Meri Heritage</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="Spirit of the Mangroves: a gamified journey through the heritage, crafts and folklore of the Mah Meri people of Pulau Carey, Malaysia.">
+  <title>Spirit of the Mangroves - A Mah Meri Cultural Journey</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8D%83%3C/text%3E%3C/svg%3E">
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
 
-  <!-- Audio elements -->
-  <audio id="bgm-player" loop src="assets/audio/ambient_nature.mp3"></audio>
-  <audio id="sfx-click" src="assets/audio/click.mp3"></audio>
-  <audio id="sfx-spirit" src="assets/audio/spirit_chime.mp3"></audio>
-
-  <!-- Web HUD (Always present when not on title) -->
-  <div id="hud" class="hidden">
-    <div id="quest-tracker">Quest: <span id="quest-text">Speak with Moyang</span></div>
-    <div id="hud-actions">
-      <button id="btn-archive" onclick="openArchive()">Museum</button>
-      <button id="btn-support" onclick="openPortal()">Support Village</button>
-      <button id="btn-audio-toggle">🔊 Sound</button>
-      <button id="btn-map" class="hidden" onclick="returnToMap()">Back to Map</button>
+  <!-- ===================== HUD (hidden on the title screen) ===================== -->
+  <header id="hud" class="hidden">
+    <div id="quest-tracker">
+      <span class="quest-label">Quest</span>
+      <span id="quest-text">Speak with Moyang</span>
     </div>
-  </div>
+    <nav id="hud-actions" aria-label="Game menu">
+      <button id="btn-map" class="hud-btn hidden" title="Back to the island map"><span aria-hidden="true">🗺️</span><span class="hud-label">Map</span></button>
+      <button id="btn-archive" class="hud-btn" title="Open the Spirit Archive museum"><span aria-hidden="true">🏺</span><span class="hud-label">Museum</span></button>
+      <button id="btn-support" class="hud-btn" title="Support the Mah Meri artisans"><span aria-hidden="true">🤝</span><span class="hud-label">Support</span></button>
+      <button id="btn-audio-toggle" class="hud-btn" title="Toggle sound"><span id="audio-icon" aria-hidden="true">🔊</span><span class="hud-label" id="audio-label">Sound</span></button>
+      <button id="btn-reset" class="hud-btn hud-btn-small" title="Reset progress (start a new journey)"><span aria-hidden="true">⟲</span></button>
+    </nav>
+  </header>
 
-  <!-- 1. Landing (Title Screen) -->
-  <section id="title-screen" class="view">
-    <!-- Video Background: Removed 'loop' so it plays once -->
-    <video autoplay muted playsinline id="bg-video">
-      <source src="assets/images/mainpage_video.mp4" type="video/mp4">
+  <!-- ===================== 1. Title screen ===================== -->
+  <section id="title-screen" class="view shown">
+    <!-- Plays once; the PLAY graphic at the end of the video is covered by the invisible start button -->
+    <video autoplay muted playsinline preload="auto" id="bg-video" poster="assets/images/mainpage_pic.jpg">
+      <source id="bg-video-src" src="assets/images/mainpage_video.mp4" type="video/mp4">
     </video>
-    
-    <!-- Invisible button placed over the video's PLAY graphic, hidden by default -->
-    <button id="btn-start-invisible" class="hidden" onclick="startGame()" aria-label="Start Game"></button>
+
+    <button id="btn-start-invisible" class="hidden" aria-label="Start game"></button>
+    <button id="btn-skip-intro" class="btn-ghost hidden">Skip intro ▸</button>
+
+    <!-- Fallback when the video cannot play (autoplay blocked / file missing) -->
+    <div id="title-fallback" class="hidden">
+      <h1 class="title-logo">Spirit of the Mangroves</h1>
+      <p class="title-sub">A Mah Meri Cultural Journey</p>
+      <button id="btn-enter" class="btn-wood btn-big">Enter Pulau Carey</button>
+    </div>
+
+    <!-- Shown after PLAY when a saved journey exists -->
+    <div id="title-menu" class="hidden">
+      <button id="btn-continue" class="btn-wood btn-big">Continue Journey</button>
+      <button id="btn-newgame" class="btn-ghost">Start a New Journey</button>
+    </div>
   </section>
 
-  <!-- 2. Interactive Map (Pulau Carey Overworld Hub) -->
+  <!-- ===================== 2. Interactive map (Pulau Carey hub) ===================== -->
   <section id="map-screen" class="view hidden">
-    <div class="map-container">
-      <img src="assets/images/map_plain.jpg" alt="Carey Island Map" id="base-map-img">
-      
-      <!-- Pin: Act I Mangroves -->
-      <div id="pin-act1" class="map-pin active" onclick="trySelectAct(1)">
-        <span class="pin-glow"></span>
-        <div class="pin-marker">🍃</div>
-        <div class="pin-label">Mangrove Swamp</div>
-      </div>
+    <div class="map-cover">
+      <img src="assets/images/map_plain.jpg" alt="Illustrated map of Pulau Carey" id="base-map-img">
+      <div class="map-mist" aria-hidden="true"></div>
 
-      <!-- Pin: Act II Weaver's Hut -->
-      <div id="pin-act2" class="map-pin locked" onclick="trySelectAct(2)">
+      <button id="pin-act1" class="map-pin" data-act="1" aria-label="Act I: Mangrove Swamp">
         <span class="pin-glow"></span>
-        <div class="pin-marker">🛖</div>
-        <div class="pin-label">Weaver's Hut</div>
-      </div>
-
-      <!-- Pin: Act III Carver's Bench -->
-      <div id="pin-act3" class="map-pin locked" onclick="trySelectAct(3)">
+        <span class="pin-marker">🍃</span>
+        <span class="pin-badge"></span>
+        <span class="pin-label">Mangrove Swamp</span>
+      </button>
+      <button id="pin-act2" class="map-pin" data-act="2" aria-label="Act II: Weaver's Hut">
         <span class="pin-glow"></span>
-        <div class="pin-marker">🪵</div>
-        <div class="pin-label">Carver's Bench</div>
-      </div>
-
-      <!-- Pin: Act IV Ceremonial Grounds -->
-      <div id="pin-act4" class="map-pin locked" onclick="trySelectAct(4)">
+        <span class="pin-marker">🧺</span>
+        <span class="pin-badge"></span>
+        <span class="pin-label">Weaver's Hut</span>
+      </button>
+      <button id="pin-act3" class="map-pin" data-act="3" aria-label="Act III: Carver's Bench">
         <span class="pin-glow"></span>
-        <div class="pin-marker">🔥</div>
-        <div class="pin-label">Ceremonial Ground</div>
-      </div>
+        <span class="pin-marker">🎭</span>
+        <span class="pin-badge"></span>
+        <span class="pin-label">Carver's Bench</span>
+      </button>
+      <button id="pin-act4" class="map-pin" data-act="4" aria-label="Act IV: Ceremonial Fire">
+        <span class="pin-glow"></span>
+        <span class="pin-marker">🔥</span>
+        <span class="pin-badge"></span>
+        <span class="pin-label">Ceremonial Fire</span>
+      </button>
     </div>
+    <div class="rotate-hint">↻ Turn your phone sideways for the best view</div>
   </section>
 
-  <!-- 3. Mini-Game Frame (This will house Game acts & can be safely coded by Member 1) -->
+  <!-- ===================== 3. Mini-game stage (games mount here) ===================== -->
   <section id="game-stage-screen" class="view hidden">
-    <div class="game-container" id="game-container-inner">
-      <!-- Injects: Act 1: collecting / Act 2: weaving mini game, etc. -->
-      <div id="game-content-mock" class="game-mock-box">
-         <h2 id="mini-game-title">Act I: Mangrove Swamp</h2>
-         <p>Collect materials! (Interact with swamp plants)</p>
-         <button id="mock-success-btn" onclick="simulateGameComplete()">Complete Task</button>
-      </div>
-    </div>
+    <div class="game-container" id="game-container-inner"></div>
+    <div class="rotate-hint">↻ Turn your phone sideways to play</div>
   </section>
 
-  <!-- Reusable Dialog System (Dialogue overlay container overlaying viewports) -->
-  <div id="dialogue-overlay" class="dialogue-box hidden">
+  <!-- ===================== Moyang dialogue overlay ===================== -->
+  <div id="dialogue-overlay" class="dialogue-box hidden" role="dialog" aria-live="polite">
     <div class="dialog-avatar">
-      <img src="assets/images/moyang_token.png" alt="Avatar" id="dialogue-avatar-img">
+      <img src="assets/images/Essential/moyang_stands_1.png" alt="Moyang Tok Naning" id="dialogue-avatar-img">
     </div>
     <div class="dialogue-body">
       <h3 id="dialogue-speaker">Moyang Tok Naning</h3>
       <div id="dialogue-textbox" class="dialogue-text"></div>
       <div class="dialogue-actions">
-        <button id="dialogue-skip" onclick="skipDialogue()">Skip</button>
-        <button id="dialogue-next" onclick="nextDialogue()">Next</button>
+        <span id="dialogue-counter" class="dialogue-counter"></span>
+        <button id="dialogue-skip" class="btn-ghost btn-small">Skip</button>
+        <button id="dialogue-next" class="btn-arrow" aria-label="Next">
+          <span>Next</span><img src="assets/images/Essential/ui_wood_button.png" alt="">
+        </button>
       </div>
     </div>
   </div>
 
-  <!-- Sidebar Overlay 1: Museum Spirit Archive -->
-  <div id="archive-modal" class="modal-view hidden">
-    <div class="modal-content">
-      <button class="modal-close" onclick="closeArchive()">✕</button>
-      <h2>The Spirit Archive (Museum)</h2>
-      <div class="museum-tabs">
-        <button id="tab-real" class="tab active" onclick="switchMuseumTab('history')">Real History</button>
-        <button id="tab-myth" class="tab" onclick="switchMuseumTab('spirit')">Ancestral Myths</button>
+  <!-- ===================== Act result panel ===================== -->
+  <div id="result-overlay" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="result-title">
+    <div class="result-card straw-panel">
+      <div class="result-kicker" id="result-kicker">Act complete</div>
+      <h2 id="result-title"></h2>
+      <div id="result-images" class="result-images"></div>
+      <p id="result-text"></p>
+      <button id="result-btn" class="btn-wood">Continue</button>
+    </div>
+  </div>
+
+  <!-- ===================== Spirit Archive (museum) ===================== -->
+  <div id="archive-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="archive-title">
+    <div class="modal-content modal-wide">
+      <button class="modal-close" data-close="archive-modal" aria-label="Close">✕</button>
+      <h2 id="archive-title">The Spirit Archive</h2>
+      <p class="modal-sub" id="archive-progress"></p>
+      <div class="museum-tabs" role="tablist">
+        <button id="tab-real" class="tab active" data-tab="history" role="tab">Real History</button>
+        <button id="tab-myth" class="tab" data-tab="myth" role="tab">Ancestral Myths</button>
       </div>
-      <div class="modal-scroll-inner" id="museum-body">
-        <!-- Render card deck (or back and front images with class toggle flip-card) -->
-        <div class="flip-card">
-          <div class="flip-card-inner">
-            <div class="flip-card-front">
-               <h3>Jo'oh Celebration</h3>
-               <p>(Read story preview)</p>
-            </div>
-            <div class="flip-card-back">
-               <p>The traditional dance performed to attract and honour guardian spirits, marking harvest celebrations.</p>
-            </div>
-          </div>
-        </div>
+      <div class="modal-scroll-inner">
+        <div id="museum-grid" class="museum-grid"></div>
+        <div id="museum-detail" class="museum-detail hidden"></div>
       </div>
     </div>
   </div>
 
-  <!-- Sidebar Overlay 2: Supporting Carey Village -->
-  <div id="portal-modal" class="modal-view hidden">
-     <div class="modal-content">
-       <button class="modal-close" onclick="closePortal()">✕</button>
-       <h2>Support the Mah Meri Community</h2>
-       <p>Connect with living heritage, check real artworks, or directly interact through NGOs and travel hubs.</p>
-       <div class="community-grid">
-         <div class="cta-card">
-           <h4>Mah Meri Cultural Village tour</h4>
-           <a href="https://www.careyisland.my" target="_blank" class="btn-micro">Plan a Visit</a>
-         </div>
-         <div class="cta-card">
-           <h4>Indigenous Crafts Support</h4>
-           <a href="#" target="_blank" class="btn-micro">Buy Crafts</a>
-         </div>
-       </div>
-     </div>
+  <!-- ===================== Support the Artisans portal ===================== -->
+  <div id="portal-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="portal-title">
+    <div class="modal-content modal-wide">
+      <button class="modal-close" data-close="portal-modal" aria-label="Close">✕</button>
+      <div class="portal-hero">
+        <h2 id="portal-title">Support the Mah Meri Artisans</h2>
+        <p>The heritage you met in this journey is alive today on Pulau Carey. Turn what you learned into real support.</p>
+      </div>
+      <div id="portal-badge" class="portal-badge"></div>
+      <div class="community-grid" id="portal-cards"></div>
+      <p class="portal-note">Links open in a new tab.</p>
+    </div>
   </div>
 
+  <!-- Toast notifications -->
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <!-- Scripts (classic scripts, load order matters) -->
+  <script src="js/assets.js"></script>
+  <script src="js/content.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/dialogue.js"></script>
+  <script src="js/games/act1-gather.js"></script>
+  <script src="js/games/act2-weave.js"></script>
+  <script src="js/games/act3-carve.js"></script>
+  <script src="js/games/act4-rhythm.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>
