@@ -2,9 +2,12 @@
 .DS_Store
 Thumbs.db
 
-# Editor Directories
+# Editor Directories & Files
 .vscode/
 .idea/
+.claude/
+CLAUDE.md
+**/CLAUDE.md
 
 # Dependencies & Build Files (Tailwind / Node)
 node_modules/

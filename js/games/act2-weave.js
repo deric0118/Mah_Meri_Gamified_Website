@@ -230,5 +230,12 @@ window.Games[2] = (function () {
     root = null;
   }
 
-  return { mount, unmount };
+  function simulatePlay() {
+    choose('N');
+    setTimeout(() => {
+      choose('D');
+    }, 200);
+  }
+
+  return { mount, unmount, simulatePlay };
 })();
