@@ -42,13 +42,58 @@
     // Ambient soundscape per screen (see audio.js)
     ambience: { map: 'map', 1: 'mangrove', 2: 'hut', 3: 'bench', 4: 'fire' },
 
+    /* ------------------------------ Cutscene subtitles ------------------------------ */
+    // Each string is one on-screen caption. Captions are spread across the
+    // video automatically (longer captions stay up longer), so keep each one
+    // to roughly one or two lines.
+    cutsceneSubtitles: {
+      // One array per video, in the same order as ASSETS.cutscenes.opening.
+      opening: [
+        [ // opening_1.mp4
+          'Long ago, on Hari Moyang, our Ancestors’ Day,',
+          'our village danced as one, honoring the spirits who guide us,',
+          'celebrating life, unity, and heritage under the golden sun.'
+        ],
+        [ // opening_2.mp4
+          'Time moves fast. The fires burn lower, the songs grow quiet.',
+          'When a culture fades, a piece of our soul goes silent with it.'
+        ],
+        [ // opening_3.mp4
+          'But heritage does not truly die, it waits to be remembered.',
+          'Help me revive the spirit of Hari Moyang before the echoes fade forever.'
+        ]
+      ],
+
+      // The cutscene that plays after each act's mini-game is finished
+      // (ASSETS.cutscenes.actEnd).
+      actEnd: {
+        1: [ // Swamp
+          'Great job, my child. Now, let’s head back before it gets dark.'
+        ],
+        2: [ // Hut
+          'Fascinating, you have done well, my child.'
+        ],
+        3: [ // Carver
+          'The beautiful Moyang Harimau Berantai,',
+          'WHAT!? For me?…',
+          '…my child, thank you.'
+        ],
+        4: [ // Ceremonial Fire
+          'The spirit of the ancestors, the community awakens once more.',
+          'You’ve saved Hari Moyang, thank you so much, my child.'
+        ]
+      }
+    },
+
     /* ------------------------------ Dialogue ------------------------------ */
+    // act1..act3 play inside the game scene when the act opens; act4 plays on
+    // the map before the dance starts (see SCENE_INTRO_ACTS in main.js).
     dialogues: {
       prologue: [
-        m('Welcome, traveller, to Pulau Carey. I am Moyang Tok Naning, a spirit of the ancestors. The pathways of the Mah Meri, the People of the Forest, have grown quiet.'),
-        m('Hari Moyang, our Ancestor\'s Day, is near. But the ceremonial crafts we offer to the spirits have been lost, and the threads of our heritage are slipping away.'),
-        m('Walk four ancient paths with me: Gathering, Weaving, Carving, and the Dance. Each one restores a piece of our celebration.'),
-        m('Begin at the Mangrove Swamp. Tap the glowing marker on the map.', 'stand')
+        m('Welcome, my child, to Pulau Carey. I am Moyang Tok Naning, a spirit of the ancestors. They have grown quiet… The People of the Forest.'),
+        m('Hari Moyang, our Ancestor\'s Day, is near. But the threads of our heritage are slipping away, and the crafts we used to offer to the spirits have also been lost.'),
+        m('My child, you have to walk four ancient paths with me: Gathering, Weaving, Carving, and the Dance. Each to restore a piece of our celebration.'),
+        m('First, we begin at the Mangrove Swamp. Now, tap the glowing marker on the map.', 'stand')
       ],
 
       act1: [
@@ -57,32 +102,33 @@
       ],
       act1_outro: [
         m('The mangroves have been generous. For generations our people have lived from these coasts and forests as fishermen, gatherers and craftspeople.'),
-        m('Bring the pandanus to the Weaver\'s Hut.', 'stand')
+        m('Now, quickly, bring the pandanus to the Weaver\'s Hut.', 'stand')
       ],
 
       act2: [
-        m('In the Weaver\'s Hut, pandanus leaves are softened, dried, split into strips and dyed.'),
+        m('I have dried up the pandanus leaves and coloured them with red and black.'),
         m('Interlock the natural and dyed strips to form the kelarai motif. First, a Tempok to guard your spirit, then a Sungu basket to hold our offerings.', 'stand')
       ],
       act2_switch: [
         m('The Tempok is finished! Now the Sungu basket. Its thorny points protect the rice seeds. This pattern also uses a dark-dyed strip.')
       ],
       act2_outro: [
-        m('Beautiful. Kelarai patterns are more than decoration: they welcome guests and protect the harvest.'),
+        m('Kelarai patterns are more than decoration: they welcome guests and protect the harvest.'),
         m('Now take the Nyireh Batu wood to the Carver\'s Bench.', 'stand')
       ],
 
       act3: [
         m('Mah Meri carvers are known around the world. Every figure tells the story of a spirit: of the forest, the sea, or our ancestors.'),
-        m('First, learn the carvings. Find the matching pairs on the bench. Then we will release a spirit from the wood.', 'stand')
+        m('First, learn the carvings. Then we will release a spirit from the wood.'),
+        m('There are 16 cards in total, holding 8 pairs of sacred carvings. Choose two, unveil their forms, and learn the hidden knowledge of the ancestors.', 'stand')
       ],
       act3_chisel: [
         m('You know the carvings now. Take up the pahat, the carver\'s chisel.'),
         m('Do not force the wood. Drag across the block to chisel gently, and release the spirit waiting inside.', 'stand')
       ],
       act3_outro: [
-        m('Moyang Harimau Berantai, the Chained Tiger, stands awake again.'),
-        m('Everything is ready. Join our people at the Ceremonial Fire for the Tarian Jo\'oh.', 'stand')
+        m('Now that we\'ve done the carving.'),
+        m('My child, you are more than ready. It\'s time to join our people at the Ceremonial Fire for the Tarian Jo\'oh.', 'stand')
       ],
 
       act4: [
@@ -91,7 +137,6 @@
       ],
 
       ending: [
-        m('Listen! The ancestors are dancing with us. The spirit of the community awakens once more.'),
         m('Everything you gathered, wove and carved now rests in the Spirit Archive. Open the Museum to learn the real history behind each piece.'),
         m('Remember: our heritage is living, not only virtual. Visit the Mah Meri on Pulau Carey and support the artisans who keep these crafts alive.', 'stand')
       ]
@@ -209,19 +254,19 @@
         icon: '🧺', title: 'Purchase Authentic Crafts',
         text: 'Buy woven baskets, tempok and wood carvings made by Mah Meri artisans, so the income goes to the makers.',
         cta: 'Find artisan crafts',
-        url: 'https://www.google.com/search?q=Mah+Meri+handicraft+Pulau+Carey+buy'
+        url: 'https://www.mmcv.org.my/souvenir-shop/'
       },
       {
         icon: '🛶', title: 'Book a Pulau Carey Tour',
         text: 'Visit the Mah Meri Cultural Village on Pulau Carey, Selangor, to watch carvers and weavers at work and see the dances live.',
-        cta: 'Open in Google Maps',
-        url: 'https://www.google.com/maps/search/?api=1&query=Mah+Meri+Cultural+Village+Pulau+Carey'
+        cta: 'View tour packages',
+        url: 'https://www.mmcv.org.my/tour-packages/'
       },
       {
-        icon: '🌱', title: 'Donate to Preservation',
-        text: 'Support organisations that protect Orang Asli heritage, land rights and education for the next generation of artisans.',
-        cta: 'Find preservation groups',
-        url: 'https://www.google.com/search?q=Orang+Asli+Mah+Meri+heritage+preservation+donate'
+        icon: '📖', title: 'Learn more about Mah Meri Culture',
+        text: 'Read the story of the Mah Meri people, their beliefs, carvings, weaving and dances, from the Mah Meri Cultural Village on Pulau Carey.',
+        cta: 'Visit MMCV About Us',
+        url: 'https://www.mmcv.org.my/about-us/'
       }
     ]
   };

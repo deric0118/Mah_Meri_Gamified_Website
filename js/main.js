@@ -143,8 +143,40 @@
     return glUpscaler;
   }
 
+  // Subtitle timing (seconds). Captions for one video are spread between
+  // SUB_LEAD and (duration - SUB_TAIL), weighted by caption length.
+  const SUB_LEAD = 0.5;  // first caption appears as the video fades in
+  const SUB_TAIL = 0.4;  // last caption stays up through the video's fade-out
+  const SUB_GAP = 0.3;   // blank beat between captions so each change reads clearly
+  const SUB_MIN_WEIGHT = 24; // short lines ("WHAT!? For me?…") still stay up long enough to read
+
+  function subtitleIndexAt(cues, t, duration) {
+    const start = SUB_LEAD;
+    const end = duration - SUB_TAIL;
+    if (!cues || !cues.length || t < start || t >= end) return -1;
+    const weight = (c) => Math.max(c.length, SUB_MIN_WEIGHT);
+    const total = cues.reduce((sum, c) => sum + weight(c), 0);
+    let slotEnd = start;
+    for (let i = 0; i < cues.length; i++) {
+      slotEnd += (end - start) * (weight(cues[i]) / total);
+      if (t < slotEnd) {
+        const isLast = i === cues.length - 1;
+        return !isLast && t >= slotEnd - SUB_GAP ? -1 : i;
+      }
+    }
+    return -1;
+  }
+
   function playCutscenes(sources, onDone, opts) {
-    const list = Array.isArray(sources) ? sources.filter(Boolean) : [];
+    // Keep each video paired with its subtitle cues (opts.subtitles[i] belongs to sources[i])
+    const subs = (opts && opts.subtitles) || [];
+    const list = [];
+    const cueList = [];
+    (Array.isArray(sources) ? sources : []).forEach((src, i) => {
+      if (!src) return;
+      list.push(src);
+      cueList.push(Array.isArray(subs[i]) ? subs[i] : null);
+    });
     if (!list.length) {
       if (onDone) onDone();
       return;
@@ -153,10 +185,36 @@
     const video = $('cutscene-video');
     const canvas = $('cutscene-canvas');
     const skipBtn = $('btn-skip-cutscene');
+    const subEl = $('cutscene-subtitle');
     if (!video) {
       if (onDone) onDone();
       return;
     }
+
+    let curCue = -1;
+    const setCue = (cueIdx) => {
+      if (!subEl || cueIdx === curCue) return;
+      curCue = cueIdx;
+      const cues = cueList[idx];
+      if (cueIdx < 0 || !cues) {
+        subEl.classList.remove('show'); // keep the text while it fades out
+        return;
+      }
+      subEl.textContent = cues[cueIdx];
+      void subEl.offsetWidth; // let the fade-in run even when the element was hidden
+      subEl.classList.add('show');
+    };
+    const clearSubtitle = () => {
+      curCue = -1;
+      if (!subEl) return;
+      subEl.classList.remove('show');
+      subEl.textContent = '';
+    };
+    // Bottom shade behind the subtitles, kept on for the whole video to avoid flicker
+    const setSubtitleShade = (on) => {
+      const screenEl = $('cutscene-screen');
+      if (screenEl) screenEl.classList.toggle('subtitles-on', !!on);
+    };
 
     const upscaler = getCutsceneUpscaler(video, canvas);
     const displayEl = upscaler && canvas ? canvas : video;
@@ -185,6 +243,8 @@
       video.removeEventListener('ended', handleEnded);
       video.removeEventListener('error', handleError);
       if (skipBtn) skipBtn.onclick = null;
+      clearSubtitle();
+      setSubtitleShade(false);
     };
 
     const finish = () => {
@@ -223,6 +283,7 @@
 
     const handleTimeUpdate = () => {
       if (finished || !video.duration || !isFinite(video.duration)) return;
+      setCue(subtitleIndexAt(cueList[idx], video.currentTime, video.duration));
       if (keepLastFrame && idx === list.length - 1) return;
       if (video.duration - video.currentTime <= 1.6) {
         displayEl.classList.add('fade-out');
@@ -240,6 +301,8 @@
       displayEl.classList.remove('fade-in', 'fade-out');
       void displayEl.offsetWidth;
       displayEl.style.transition = '';
+      clearSubtitle();
+      setSubtitleShade(cueList[idx]);
 
       // Always keep cutscenes muted (audio will be added separately later)
       video.muted = true;
@@ -339,6 +402,7 @@
   function beginNewJourney() {
     State.reset();
     const openingVideos = (window.ASSETS && ASSETS.cutscenes && ASSETS.cutscenes.opening) || [];
+    const openingSubs = (CONTENT.cutsceneSubtitles && CONTENT.cutsceneSubtitles.opening) || [];
     playCutscenes(openingVideos, () => {
       State.data.seenPrologue = true;
       State.save();
@@ -347,7 +411,7 @@
         updateHud();
         UI.toast('Tap the glowing Mangrove Swamp marker to begin.');
       });
-    });
+    }, { subtitles: openingSubs });
   }
 
   function continueJourney() {
@@ -396,11 +460,20 @@
       return;
     }
     AudioFX.play('click');
-    Dialogue.start(CONTENT.dialogues['act' + n], () => launchMiniGame(n));
+    const intro = CONTENT.dialogues['act' + n];
+    if (SCENE_INTRO_ACTS.includes(n)) {
+      launchMiniGame(n, intro);
+    } else {
+      Dialogue.start(intro, () => launchMiniGame(n));
+    }
   }
 
   /* ============================ Acts ============================ */
-  function launchMiniGame(n) {
+  // Acts whose intro dialogue plays inside the game scene (script: NPC Swamp / Hut / Carver).
+  // Act IV's intro stays on the map, before the dance begins (script: NPC Map).
+  const SCENE_INTRO_ACTS = [1, 2, 3];
+
+  function launchMiniGame(n, intro) {
     const game = window.Games && window.Games[n];
     if (!game) { UI.toast('This act is not available yet.'); return; }
     unmountGame();
@@ -410,6 +483,8 @@
     activeGame = game;
     AudioFX.setAmbience(CONTENT.ambience[n]);
     game.mount(host, { onComplete: () => completeAct(n) });
+    // Moyang speaks over the scene; the games ignore input while a dialogue is open.
+    if (intro) Dialogue.start(intro);
   }
 
   function unmountGame() {
@@ -427,6 +502,7 @@
     updateHud();
     const r = CONTENT.rewards[n];
     const endCutscene = window.ASSETS && ASSETS.cutscenes && ASSETS.cutscenes.actEnd && ASSETS.cutscenes.actEnd[n];
+    const endSubs = CONTENT.cutsceneSubtitles && CONTENT.cutsceneSubtitles.actEnd && CONTENT.cutsceneSubtitles.actEnd[n];
 
     const returnToMapAndOutro = () => {
       goMap();
@@ -453,7 +529,7 @@
           // For Act IV (final game), play act4_end cutscene after clicking Celebrate, fade out slowly, then go back to the map
           if (n === 4 && endCutscene) {
             unmountGame();
-            playCutscenes([endCutscene], returnToMapAndOutro, { keepLastFrame: false });
+            playCutscenes([endCutscene], returnToMapAndOutro, { keepLastFrame: false, subtitles: [endSubs] });
           } else {
             returnToMapAndOutro();
           }
@@ -463,7 +539,7 @@
 
     if (n !== 4 && endCutscene) {
       unmountGame();
-      playCutscenes([endCutscene], showReward, { keepLastFrame: true });
+      playCutscenes([endCutscene], showReward, { keepLastFrame: true, subtitles: [endSubs] });
     } else {
       showReward();
     }

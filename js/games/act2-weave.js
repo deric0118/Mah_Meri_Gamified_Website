@@ -146,7 +146,7 @@ window.Games[2] = (function () {
   }
 
   function choose(c) {
-    if (busy || !root) return;
+    if (busy || !root || UI.isBlocked()) return;
     const craft = CRAFTS[craftIdx];
     const pat = craft.patterns[patIdx];
     const btn = stripBar.querySelector('[data-strip="' + c + '"]');

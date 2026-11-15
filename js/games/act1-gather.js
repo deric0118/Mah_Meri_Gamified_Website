@@ -95,7 +95,7 @@ window.Games[1] = (function () {
   }
 
   function hint() {
-    if (done) return;
+    if (done || UI.isBlocked()) return;
     AudioFX.play('chime');
     const left = Array.from(root.querySelectorAll('.hidden-item')).filter((n) => !n.dataset.taken);
     if (!left.length) return;

@@ -24,6 +24,8 @@
     onDone = done || null;
     if (!lines.length) { finish(); return; }
     overlay.classList.remove('hidden');
+    // Lets game scenes hide their interactive bits (items, hint button) while Moyang talks.
+    document.body.classList.add('dialogue-open');
     render();
   }
 
@@ -74,6 +76,7 @@
     clearInterval(timer);
     typing = false;
     overlay.classList.add('hidden');
+    document.body.classList.remove('dialogue-open');
     const cb = onDone;
     onDone = null;
     lines = [];
@@ -87,6 +90,7 @@
     clearInterval(timer);
     typing = false;
     overlay.classList.add('hidden');
+    document.body.classList.remove('dialogue-open');
   }
 
   function isOpen() {
