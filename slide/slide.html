@@ -138,7 +138,12 @@ h2 em{font-size:1.1em; line-height:.8}
 .s-aim .bg img{object-position:50% 40%; filter:saturate(.7) brightness(.8)}
 .s-aim .shade{background:linear-gradient(90deg, var(--bg) 42%, var(--shade-mid) 60%, var(--shade-0) 90%), linear-gradient(0deg, var(--shade-mid), var(--shade-0) 40%)}
 .s-aim .content{grid-template-rows:auto 1fr auto auto; align-content:stretch; gap:1.2cqw}
-.s-aim .big{align-self:center; font-size:8.4cqw}
+.s-aim .quote{align-self:center; margin:0; display:grid; gap:1.4cqw}
+.s-aim .big{margin:0; font-size:5cqw}
+.s-aim .big b{font-weight:inherit; display:inline-block}
+.s-aim .q2{color:transparent; -webkit-text-stroke:.1cqw var(--bone); background:linear-gradient(var(--gold),var(--gold)) 0 100% / 100% 100% no-repeat; -webkit-background-clip:text; background-clip:text}
+.s-aim .q3::after{content:""; display:inline-block; width:7cqw; height:.35cqw; margin-left:1cqw; vertical-align:.35em; background:linear-gradient(90deg, var(--gold), transparent); border-radius:99em}
+.s-aim .quote figcaption{font-family:var(--mono); font-size:var(--t-s); letter-spacing:.14em; text-transform:uppercase; color:var(--gold)}
 .tg{display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:2.2cqw; max-width:60cqw; border-top:1px solid var(--line); padding-top:1.2cqw}
 .tg div{display:grid; gap:.35cqw; align-content:start}
 .tg dt{font-family:var(--mono); font-size:var(--t-s); letter-spacing:.14em; text-transform:uppercase; color:var(--gold)}
@@ -294,6 +299,12 @@ h2 em{font-size:1.1em; line-height:.8}
   @keyframes up{from{transform:translateY(112%)}}
   .is-active .fx{animation:fx 1s cubic-bezier(.16,1,.3,1) both; animation-delay:calc(var(--i, 0) * 110ms + 300ms)}
   @keyframes fx{from{opacity:0; transform:translateY(1.4cqw)}}
+  .s-aim.is-active .q1{animation:closer 1.6s cubic-bezier(.16,1,.3,1) both .45s}
+  @keyframes closer{from{letter-spacing:.22em; opacity:.35; filter:blur(.25cqw)}}
+  .s-aim.is-active .q2{animation:deeper 1.8s cubic-bezier(.65,0,.35,1) both 1.3s}
+  @keyframes deeper{from{background-size:100% 0%}}
+  .s-aim.is-active .q3::after{animation:further 1.4s cubic-bezier(.16,1,.3,1) both 1.9s}
+  @keyframes further{from{width:0; opacity:0}}
   .is-active .laptop img{animation:tilt 1.6s cubic-bezier(.16,1,.3,1) both .25s}
   @keyframes tilt{from{opacity:0; transform:rotateY(-34deg) rotateX(10deg) translateX(6%)}}
   .is-active .funnel .bar i{animation:grow 1.3s cubic-bezier(.16,1,.3,1) both; animation-delay:calc(var(--i, 0) * 140ms + 500ms)}
@@ -471,7 +482,10 @@ h2 em{font-size:1.1em; line-height:.8}
   <div class="shade"></div>
   <div class="content">
     <p class="kicker ln" style="--i:0"><span>03 · The aim</span></p>
-    <p class="big"><span class="ln" style="--i:1"><span>Know it.</span></span><span class="ln" style="--i:2"><span class="out">Value it.</span></span><span class="ln" style="--i:3"><span>Visit it.</span></span></p>
+    <figure class="quote">
+      <blockquote class="big"><span class="ln" style="--i:1"><span><b class="q1">See closer.</b></span></span><span class="ln" style="--i:2"><span><b class="q2">Look deeper.</b></span></span><span class="ln" style="--i:3"><span><b class="q3">Reach further.</b></span></span></blockquote>
+      <figcaption class="fx" style="--i:4">— Mr. Rashid Esa, Mah Meri Cultural Village</figcaption>
+    </figure>
     <p class="lead fx" style="--i:5">More young Malaysians who know, value and visit Mah Meri heritage.</p>
     <dl class="tg fx" style="--i:6">
       <div><dt>Primary users</dt><dd>Young adults aged 16 to 30, especially Klang Valley students</dd></div>
