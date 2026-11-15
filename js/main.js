@@ -25,14 +25,263 @@
       const tv = $('bg-video');
       if (tv && !tv.paused) tv.pause();
     }
+    if (id !== 'cutscene-screen') {
+      const cv = $('cutscene-video');
+      if (cv && !cv.paused) cv.pause();
+    }
     updateHud();
   }
 
   function updateHud() {
-    $('hud').classList.toggle('hidden', currentView === 'title-screen');
+    $('hud').classList.toggle('hidden', currentView === 'title-screen' || currentView === 'cutscene-screen');
     $('btn-map').classList.toggle('hidden', currentView !== 'game-stage-screen');
     const n = State.nextAct();
     $('quest-text').textContent = n ? CONTENT.quests[n] : CONTENT.quests.done;
+  }
+
+  /* ============================ Cutscenes ============================ */
+  let glUpscaler = null;
+  function getCutsceneUpscaler(video, canvas) {
+    if (glUpscaler !== null) return glUpscaler;
+    if (!canvas) { glUpscaler = false; return false; }
+    const gl = canvas.getContext('webgl', { alpha: false, antialias: false, depth: false, stencil: false, preserveDrawingBuffer: true });
+    if (!gl) { glUpscaler = false; return false; }
+
+    const vsSrc = `
+      attribute vec2 aPos;
+      varying vec2 vUv;
+      uniform vec2 uScale;
+      void main() {
+        gl_Position = vec4(aPos, 0.0, 1.0);
+        vec2 uv = (aPos * 0.5) * uScale + 0.5;
+        vUv = vec2(uv.x, 1.0 - uv.y);
+      }
+    `;
+    // Contrast-Adaptive Sharpening (AMD FidelityFX CAS) + local contrast enhancement
+    const fsSrc = `
+      precision highp float;
+      varying vec2 vUv;
+      uniform sampler2D uTex;
+      uniform vec2 uTexel;
+      void main() {
+        vec3 c = texture2D(uTex, vUv).rgb;
+        vec3 n = texture2D(uTex, vUv + vec2(0.0, -uTexel.y)).rgb;
+        vec3 s = texture2D(uTex, vUv + vec2(0.0,  uTexel.y)).rgb;
+        vec3 w = texture2D(uTex, vUv + vec2(-uTexel.x, 0.0)).rgb;
+        vec3 e = texture2D(uTex, vUv + vec2( uTexel.x, 0.0)).rgb;
+
+        vec3 mn = min(min(min(n, s), min(w, e)), c);
+        vec3 mx = max(max(max(n, s), max(w, e)), c);
+        vec3 amp = clamp(min(mn, 1.0 - mx) / max(mx, vec3(0.0001)), 0.0, 1.0);
+        vec3 weight = -sqrt(amp) * 0.16;
+        vec3 color = clamp((c + (n + s + w + e) * weight) / (1.0 + 4.0 * weight), 0.0, 1.0);
+
+        // Subtle S-curve contrast and saturation boost for crisp lines
+        color = clamp((color - 0.5) * 1.04 + 0.5, 0.0, 1.0);
+        gl_FragColor = vec4(color, 1.0);
+      }
+    `;
+
+    const compile = (type, src) => {
+      const sh = gl.createShader(type);
+      gl.shaderSource(sh, src);
+      gl.compileShader(sh);
+      return gl.getShaderParameter(sh, gl.COMPILE_STATUS) ? sh : null;
+    };
+    const vs = compile(gl.VERTEX_SHADER, vsSrc);
+    const fs = compile(gl.FRAGMENT_SHADER, fsSrc);
+    if (!vs || !fs) { glUpscaler = false; return false; }
+
+    const prog = gl.createProgram();
+    gl.attachShader(prog, vs);
+    gl.attachShader(prog, fs);
+    gl.linkProgram(prog);
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) { glUpscaler = false; return false; }
+    gl.useProgram(prog);
+
+    const buf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+    const aPos = gl.getAttribLocation(prog, 'aPos');
+    gl.enableVertexAttribArray(aPos);
+    gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
+
+    const tex = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+    const uScale = gl.getUniformLocation(prog, 'uScale');
+    const uTexel = gl.getUniformLocation(prog, 'uTexel');
+
+    glUpscaler = {
+      draw() {
+        const vw = video.videoWidth || 1280;
+        const vh = video.videoHeight || 720;
+        if (video.readyState < 2) return;
+        const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+        const cw = Math.round(window.innerWidth * dpr);
+        const ch = Math.round(window.innerHeight * dpr);
+        if (canvas.width !== cw || canvas.height !== ch) {
+          canvas.width = cw;
+          canvas.height = ch;
+          gl.viewport(0, 0, cw, ch);
+        }
+        const vidAspect = vw / vh;
+        const canAspect = cw / ch;
+        const sx = canAspect > vidAspect ? 1.0 : canAspect / vidAspect;
+        const sy = canAspect > vidAspect ? vidAspect / canAspect : 1.0;
+        gl.uniform2f(uScale, sx, sy);
+        gl.uniform2f(uTexel, 1.0 / vw, 1.0 / vh);
+        gl.bindTexture(gl.TEXTURE_2D, tex);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, video);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      }
+    };
+    return glUpscaler;
+  }
+
+  function playCutscenes(sources, onDone, opts) {
+    const list = Array.isArray(sources) ? sources.filter(Boolean) : [];
+    if (!list.length) {
+      if (onDone) onDone();
+      return;
+    }
+
+    const video = $('cutscene-video');
+    const canvas = $('cutscene-canvas');
+    const skipBtn = $('btn-skip-cutscene');
+    if (!video) {
+      if (onDone) onDone();
+      return;
+    }
+
+    const upscaler = getCutsceneUpscaler(video, canvas);
+    const displayEl = upscaler && canvas ? canvas : video;
+    const keepLastFrame = !!(opts && opts.keepLastFrame);
+    AudioFX.setAmbience(null);
+    showView('cutscene-screen');
+
+    let idx = 0;
+    let altIdx = 0;
+    let finished = false;
+    let rafId = 0;
+
+    const renderLoop = () => {
+      if (finished) return;
+      if (upscaler && !video.paused && !video.ended) {
+        try { upscaler.draw(); } catch (e) { /* ignore */ }
+      }
+      rafId = requestAnimationFrame(renderLoop);
+    };
+    if (upscaler) rafId = requestAnimationFrame(renderLoop);
+
+    const cleanup = () => {
+      cancelAnimationFrame(rafId);
+      video.removeEventListener('playing', handlePlaying);
+      video.removeEventListener('timeupdate', handleTimeUpdate);
+      video.removeEventListener('ended', handleEnded);
+      video.removeEventListener('error', handleError);
+      if (skipBtn) skipBtn.onclick = null;
+    };
+
+    const finish = () => {
+      if (finished) return;
+      finished = true;
+      if (upscaler && keepLastFrame) {
+        try { upscaler.draw(); } catch (e) { /* ignore */ }
+      }
+      cleanup();
+      if (keepLastFrame) {
+        displayEl.classList.remove('fade-out');
+        displayEl.classList.add('fade-in');
+        video.pause();
+        if (skipBtn) skipBtn.classList.add('hidden');
+      } else {
+        displayEl.classList.remove('fade-in', 'fade-out');
+        video.pause();
+        video.removeAttribute('src');
+        video.load();
+      }
+      if (onDone) onDone();
+    };
+
+    if (skipBtn) skipBtn.classList.remove('hidden');
+
+    const handlePlaying = () => {
+      if (finished) return;
+      if (upscaler) {
+        try { upscaler.draw(); } catch (e) { /* ignore */ }
+      }
+      requestAnimationFrame(() => {
+        displayEl.classList.remove('fade-out');
+        displayEl.classList.add('fade-in');
+      });
+    };
+
+    const handleTimeUpdate = () => {
+      if (finished || !video.duration || !isFinite(video.duration)) return;
+      if (keepLastFrame && idx === list.length - 1) return;
+      if (video.duration - video.currentTime <= 1.6) {
+        displayEl.classList.add('fade-out');
+      }
+    };
+
+    const playCurrent = () => {
+      if (finished) return;
+      if (idx >= list.length) {
+        finish();
+        return;
+      }
+      // Reset to transparent immediately before loading the next video so it fades in slowly
+      displayEl.style.transition = 'none';
+      displayEl.classList.remove('fade-in', 'fade-out');
+      void displayEl.offsetWidth;
+      displayEl.style.transition = '';
+
+      // Always keep cutscenes muted (audio will be added separately later)
+      video.muted = true;
+      const entry = list[idx];
+      video.src = Array.isArray(entry) ? entry[altIdx] : entry;
+      video.load();
+      const p = video.play();
+      if (p && typeof p.catch === 'function') {
+        p.catch(handleError);
+      }
+    };
+
+    const handleEnded = () => {
+      idx += 1;
+      altIdx = 0;
+      playCurrent();
+    };
+
+    const handleError = () => {
+      const entry = list[idx];
+      if (Array.isArray(entry) && altIdx + 1 < entry.length) {
+        altIdx += 1;
+        playCurrent();
+        return;
+      }
+      idx += 1;
+      altIdx = 0;
+      playCurrent();
+    };
+
+    video.addEventListener('playing', handlePlaying);
+    video.addEventListener('timeupdate', handleTimeUpdate);
+    video.addEventListener('ended', handleEnded);
+    video.addEventListener('error', handleError);
+    if (skipBtn) {
+      skipBtn.onclick = () => {
+        AudioFX.play('click');
+        finish();
+      };
+    }
+
+    playCurrent();
   }
 
   /* ============================ Title ============================ */
@@ -78,35 +327,34 @@
     startBtn.addEventListener('click', onStartPressed);
     $('btn-enter').addEventListener('click', onStartPressed);
     $('btn-continue').addEventListener('click', () => { AudioFX.play('click'); continueJourney(); });
-    $('btn-newgame').addEventListener('click', () => { AudioFX.play('click'); beginNewJourney(); });
+    $('btn-newgame').addEventListener('click', () => { AudioFX.play('click'); restartJourney(); });
   }
 
   function onStartPressed() {
     AudioFX.unlock();
     AudioFX.play('chime');
-    if (State.hasProgress()) {
-      $('btn-start-invisible').classList.add('hidden');
-      $('title-fallback').classList.add('hidden');
-      $('title-menu').classList.remove('hidden');
-      $('btn-continue').focus();
-    } else {
-      beginNewJourney();
-    }
+    beginNewJourney();
   }
 
   function beginNewJourney() {
     State.reset();
-    goMap();
-    Dialogue.start(CONTENT.dialogues.prologue, () => {
+    const openingVideos = (window.ASSETS && ASSETS.cutscenes && ASSETS.cutscenes.opening) || [];
+    playCutscenes(openingVideos, () => {
       State.data.seenPrologue = true;
       State.save();
-      updateHud();
-      UI.toast('Tap the glowing Mangrove Swamp marker to begin.');
+      goMap();
+      Dialogue.start(CONTENT.dialogues.prologue, () => {
+        updateHud();
+        UI.toast('Tap the glowing Mangrove Swamp marker to begin.');
+      });
     });
   }
 
   function continueJourney() {
-    goMap();
+    closeModal('pause-modal');
+    if (currentView === 'title-screen' || currentView === 'cutscene-screen') {
+      goMap();
+    }
     UI.toast(State.data.finished ? 'Welcome back! Your journey is complete.' : 'Welcome back, traveller. ' + CONTENT.quests[State.nextAct()] + '.');
   }
 
@@ -176,28 +424,49 @@
   function completeAct(n) {
     const firstTime = !State.isCompleted(n);
     State.completeAct(n);
-    AudioFX.play('victory');
     updateHud();
     const r = CONTENT.rewards[n];
-    UI.result({
-      kicker: CONTENT.actTitles[n],
-      title: r.title,
-      text: r.text,
-      images: r.images,
-      button: n === 4 ? 'Celebrate' : 'Return to Map',
-      onClose: () => {
-        goMap();
-        if (!firstTime && n !== 4) return;
-        const outro = n === 4 ? CONTENT.dialogues.ending : CONTENT.dialogues['act' + n + '_outro'];
-        Dialogue.start(outro, () => {
-          if (n === 4) {
-            openPortal();
+    const endCutscene = window.ASSETS && ASSETS.cutscenes && ASSETS.cutscenes.actEnd && ASSETS.cutscenes.actEnd[n];
+
+    const returnToMapAndOutro = () => {
+      goMap();
+      if (!firstTime && n !== 4) return;
+      const outro = n === 4 ? CONTENT.dialogues.ending : CONTENT.dialogues['act' + n + '_outro'];
+      Dialogue.start(outro, () => {
+        if (n === 4) {
+          openPortal();
+        } else {
+          UI.toast('New location unlocked: ' + CONTENT.actNames[n + 1]);
+        }
+      });
+    };
+
+    const showReward = () => {
+      AudioFX.play('victory');
+      UI.result({
+        kicker: CONTENT.actTitles[n],
+        title: r.title,
+        text: r.text,
+        images: r.images,
+        button: n === 4 ? 'Celebrate' : 'Return to Map',
+        onClose: () => {
+          // For Act IV (final game), play act4_end cutscene after clicking Celebrate, fade out slowly, then go back to the map
+          if (n === 4 && endCutscene) {
+            unmountGame();
+            playCutscenes([endCutscene], returnToMapAndOutro, { keepLastFrame: false });
           } else {
-            UI.toast('New location unlocked: ' + CONTENT.actNames[n + 1]);
+            returnToMapAndOutro();
           }
-        });
-      }
-    });
+        }
+      });
+    };
+
+    if (n !== 4 && endCutscene) {
+      unmountGame();
+      playCutscenes([endCutscene], showReward, { keepLastFrame: true });
+    } else {
+      showReward();
+    }
   }
 
   /* ============================ Museum ============================ */
@@ -326,10 +595,15 @@
     $(id).classList.add('hidden');
   }
 
-  /* ============================ Reset ============================ */
-  function resetProgress() {
+  /* ============================ Pause / Reset ============================ */
+  function openPauseMenu() {
     AudioFX.play('click');
-    if (!window.confirm('Reset all progress and start a new journey?')) return;
+    showModal('pause-modal');
+    const contBtn = $('btn-continue');
+    if (contBtn) setTimeout(() => contBtn.focus(), 30);
+  }
+
+  function restartJourney() {
     Dialogue.cancel();
     $('result-overlay').classList.add('hidden');
     document.querySelectorAll('.modal').forEach((m) => m.classList.add('hidden'));
@@ -379,7 +653,7 @@
     $('btn-archive').addEventListener('click', openArchive);
     $('btn-support').addEventListener('click', openPortal);
     $('btn-audio-toggle').addEventListener('click', toggleAudio);
-    $('btn-reset').addEventListener('click', resetProgress);
+    $('btn-reset').addEventListener('click', openPauseMenu);
 
     document.querySelectorAll('[data-close]').forEach((b) =>
       b.addEventListener('click', () => { AudioFX.play('click'); closeModal(b.dataset.close); }));
@@ -395,6 +669,10 @@
       if (e.key === 'Escape') {
         const open = Array.from(document.querySelectorAll('.modal')).filter((m) => !m.classList.contains('hidden'));
         if (open.length) { closeModal(open[open.length - 1].id); return; }
+        if (currentView !== 'title-screen' && currentView !== 'cutscene-screen') {
+          openPauseMenu();
+          return;
+        }
       }
       if (Dialogue.isOpen() && (e.key === 'Enter' || e.key === ' ')) {
         e.preventDefault();

@@ -21,18 +21,20 @@
       <button id="btn-archive" class="hud-btn" title="Open the Spirit Archive museum"><span aria-hidden="true">🏺</span><span class="hud-label">Museum</span></button>
       <button id="btn-support" class="hud-btn" title="Support the Mah Meri artisans"><span aria-hidden="true">🤝</span><span class="hud-label">Support</span></button>
       <button id="btn-audio-toggle" class="hud-btn" title="Toggle sound"><span id="audio-icon" aria-hidden="true">🔊</span><span class="hud-label" id="audio-label">Sound</span></button>
-      <button id="btn-reset" class="hud-btn hud-btn-small" title="Reset progress (start a new journey)"><span aria-hidden="true">⟲</span></button>
+      <button id="btn-reset" class="hud-btn hud-btn-small" title="Pause / Journey menu"><span aria-hidden="true">⏸</span></button>
     </nav>
   </header>
 
   <!-- ===================== 1. Title screen ===================== -->
   <section id="title-screen" class="view shown">
-    <!-- Plays once; the PLAY graphic at the end of the video is covered by the invisible start button -->
-    <video autoplay muted playsinline preload="auto" id="bg-video" poster="assets/images/mainpage_pic.jpg">
-      <source id="bg-video-src" src="assets/images/mainpage_video.mp4" type="video/mp4">
-    </video>
+    <!-- 16:9 cover box so the invisible PLAY button always aligns with the video graphic -->
+    <div class="title-cover">
+      <video autoplay muted playsinline preload="auto" id="bg-video" poster="assets/images/mainpage_pic.jpg">
+        <source id="bg-video-src" src="assets/images/mainpage_video.mp4" type="video/mp4">
+      </video>
+      <button id="btn-start-invisible" class="hidden" aria-label="Start game"></button>
+    </div>
 
-    <button id="btn-start-invisible" class="hidden" aria-label="Start game"></button>
     <button id="btn-skip-intro" class="btn-ghost hidden">Skip intro ▸</button>
 
     <!-- Fallback when the video cannot play (autoplay blocked / file missing) -->
@@ -41,12 +43,13 @@
       <p class="title-sub">A Mah Meri Cultural Journey</p>
       <button id="btn-enter" class="btn-wood btn-big">Enter Pulau Carey</button>
     </div>
+  </section>
 
-    <!-- Shown after PLAY when a saved journey exists -->
-    <div id="title-menu" class="hidden">
-      <button id="btn-continue" class="btn-wood btn-big">Continue Journey</button>
-      <button id="btn-newgame" class="btn-ghost">Start a New Journey</button>
-    </div>
+  <!-- ===================== 1b. Cutscene screen ===================== -->
+  <section id="cutscene-screen" class="view hidden">
+    <video id="cutscene-video" muted playsinline preload="auto"></video>
+    <canvas id="cutscene-canvas" aria-hidden="true"></canvas>
+    <button id="btn-skip-cutscene" class="btn-ghost">Skip ▸</button>
   </section>
 
   <!-- ===================== 2. Interactive map (Pulau Carey hub) ===================== -->
@@ -146,6 +149,19 @@
       <div id="portal-badge" class="portal-badge"></div>
       <div class="community-grid" id="portal-cards"></div>
       <p class="portal-note">Links open in a new tab.</p>
+    </div>
+  </div>
+
+  <!-- ===================== Pause / Journey menu ===================== -->
+  <div id="pause-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="pause-title">
+    <div class="modal-content pause-menu-card">
+      <button class="modal-close" data-close="pause-modal" aria-label="Close">✕</button>
+      <h2 id="pause-title">Journey Paused</h2>
+      <p class="modal-sub">Continue where you left off or start a new journey from the beginning.</p>
+      <div id="title-menu" class="pause-actions">
+        <button id="btn-continue" class="btn-wood btn-big">Continue Journey</button>
+        <button id="btn-newgame" class="btn-ghost">Start a New Journey</button>
+      </div>
     </div>
   </div>
 
