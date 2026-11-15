@@ -1,0 +1,826 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mah Meri Proposal Deck</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..900&family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500&display=swap">
+<style>
+/* Direction: a film about a village at dusk. Letterboxed frame with a HUD in the black bars,
+   full-bleed photography with slow push-ins, condensed film-title type, a serif italic for the
+   one word that matters, film grain over everything. One committed dark look.
+   Below 900px wide the scenes stack and scroll. */
+:root{
+  --ink:#050806; --bg:#0B1310; --bg2:#101B17; --bone:#EFE7D2; --bone-dim:#A9A693; --gold:#DCA846; --moss:#6E9A79;
+  --line:rgba(239,231,210,.16); --line2:rgba(239,231,210,.32); --glow:rgba(220,168,70,.22); --shade:rgba(5,8,6,.86); --shade-mid:rgba(5,8,6,.55); --shade-0:rgba(5,8,6,0);
+  --title:"Archivo","Arial Narrow",Arial,sans-serif;
+  --serif:"Instrument Serif",Georgia,"Times New Roman",serif;
+  --mono:"DM Mono","Courier New",monospace;
+  color-scheme:dark;
+}
+html,body{height:100%}
+*,*::before,*::after{box-sizing:border-box}
+body{
+  background:var(--ink); color:var(--bone); font-family:var(--title); font-stretch:100%;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));
+  padding-right:max(16px, env(safe-area-inset-right, 0px));
+  display:flex; flex-direction:column;
+}
+h1,h2,h3,p,ul,ol,dl,dd,figure{margin:0}
+ul,ol{padding:0; list-style:none}
+em{font-family:var(--serif); font-style:italic; font-weight:400; font-stretch:100%; letter-spacing:0; text-transform:none; color:var(--gold)}
+
+.viewport{flex:1; min-height:0; container-type:size; display:grid; place-items:center; padding-block:14px}
+.stage{position:relative; width:min(100cqw, calc(100cqh * 16 / 9)); aspect-ratio:16/9; container-type:size; overflow:hidden;
+  background:var(--ink); border-radius:6px; cursor:pointer; isolation:isolate}
+
+/* ---------- type scale (stage-relative) ---------- */
+.stage{--lb:3.5cqw; --px:6.2cqw; --t-mega:15cqw; --t-big:10.5cqw; --t-h:6cqw; --t-l:2.35cqw; --t-m:1.7cqw; --t-s:max(10px, 1.06cqw); --gap:2cqw; --r:.7cqw}
+.mega{font-family:var(--title); font-stretch:64%; font-weight:850; font-size:var(--t-mega); line-height:.82; letter-spacing:-.012em; text-transform:uppercase}
+.big{font-family:var(--title); font-stretch:64%; font-weight:850; font-size:var(--t-big); line-height:.86; letter-spacing:-.01em; text-transform:uppercase}
+h2{font-family:var(--title); font-stretch:78%; font-weight:750; font-size:var(--t-h); line-height:.98; letter-spacing:-.018em; text-wrap:balance}
+h2 em{font-size:1.1em; line-height:.8}
+.kicker > span::before{content:""; display:inline-block; width:2.4cqw; height:1px; background:currentColor; vertical-align:middle; margin-right:1cqw}
+.kicker{font-family:var(--mono); font-size:var(--t-s); letter-spacing:.16em; text-transform:uppercase; color:var(--gold)}
+.lead{font-family:var(--title); font-stretch:92%; font-weight:400; font-size:var(--t-l); line-height:1.22; color:var(--bone)}
+.body{font-family:var(--title); font-stretch:96%; font-weight:400; font-size:var(--t-m); line-height:1.4; color:var(--bone-dim)}
+.mono{font-family:var(--mono); font-size:var(--t-s); letter-spacing:.06em; color:var(--bone-dim)}
+.out{color:transparent; -webkit-text-stroke:.12cqw var(--bone)}
+
+/* mask reveal: <span class="ln"><span>words</span></span> */
+.ln{display:block; overflow:hidden; padding-bottom:.1em; margin-bottom:-.1em}
+.ln > span{display:block}
+
+/* ---------- frame chrome ---------- */
+.lbar{position:absolute; left:0; right:0; height:var(--lb); z-index:6; background:var(--ink); display:flex; align-items:center; justify-content:space-between; gap:2cqw;
+  padding:0 2.2cqw; font-family:var(--mono); font-size:var(--t-s); letter-spacing:.16em; text-transform:uppercase; color:var(--bone-dim)}
+.lbar.top{top:0}
+.lbar.bot{bottom:0}
+.lbar b{font-weight:500; color:var(--bone)}
+.lbar .rec{display:inline-block; width:.55cqw; height:.55cqw; border-radius:50%; background:var(--gold); margin-right:.8cqw; vertical-align:middle}
+.segs{display:flex; gap:.35cqw; align-items:center}
+.seg{width:2.9cqw; height:2cqw; padding:.86cqw 0; border:0; background:var(--line) content-box; cursor:pointer; border-radius:0}
+.seg.done{background-color:var(--bone-dim)}
+.seg.on{background-color:var(--gold)}
+.seg:focus-visible{outline:2px solid var(--gold); outline-offset:3px}
+
+.wipe{position:absolute; inset:0; z-index:5; pointer-events:none; transform:translateX(-120%);
+  background:linear-gradient(90deg, var(--shade-0) 0%, var(--ink) 26%, var(--ink) 47%, var(--gold) 49.5%, var(--ink) 52%, var(--ink) 74%, var(--shade-0) 100%)}
+.flare{position:absolute; width:64cqw; height:64cqw; right:-18cqw; top:-26cqw; border-radius:50%; pointer-events:none;
+  background:radial-gradient(circle, rgba(220,168,70,.16) 0%, rgba(220,168,70,.05) 38%, rgba(220,168,70,0) 66%)}
+.grain{position:absolute; inset:-60%; z-index:4; pointer-events:none; opacity:.085; background-image:var(--noise, none); background-size:220px 220px}
+.vig{position:absolute; inset:0; z-index:3; pointer-events:none; background:radial-gradient(120% 95% at 50% 50%, var(--shade-0) 55%, var(--shade-mid) 100%)}
+
+/* ---------- scenes ---------- */
+.slide{position:absolute; inset:0; overflow:hidden; background:var(--bg); opacity:0; visibility:hidden; transition:opacity .9s ease, visibility 0s linear .9s}
+.slide.is-active{opacity:1; visibility:visible; transition:opacity .9s ease}
+.bg{position:absolute; inset:0; overflow:hidden}
+.bg img{width:100%; height:100%; object-fit:cover; display:block; transform:scale(1.03)}
+.shade{position:absolute; inset:0}
+.content{position:absolute; inset:calc(var(--lb) + 3.4cqw) var(--px) calc(var(--lb) + 3cqw); display:grid; gap:var(--gap); min-height:0}
+.credit{position:absolute; right:2.2cqw; bottom:calc(var(--lb) + 1.1cqw); z-index:2; font-family:var(--mono); font-size:var(--t-s); letter-spacing:.06em; color:var(--bone-dim)}
+
+/* 01 opening */
+.s-open .bg img{object-position:70% 45%; filter:saturate(.8) contrast(1.05)}
+.s-open .shade{background:linear-gradient(90deg, var(--shade) 0%, var(--shade-mid) 42%, var(--shade-0) 78%), linear-gradient(0deg, var(--shade) 0%, var(--shade-0) 45%)}
+.s-open .content{grid-template-rows:1fr auto auto auto 1fr auto; align-items:end}
+.s-open .mega{grid-row:3; font-size:18cqw}
+.s-open .credit, .s-fin .credit{bottom:auto; top:calc(var(--lb) + 1.1cqw)}
+.s-open .kicker{grid-row:2}
+.s-open .lead{grid-row:4; max-width:24em}
+.s-open .billing{grid-row:6; display:flex; align-items:center; gap:2.4cqw; border-top:1px solid var(--line); padding-top:1.6cqw}
+.logo{display:block; width:15cqw; height:auto; flex:none}
+.chip{background:#FFFFFF; border-radius:.5cqw; padding:.5cqw .8cqw; width:12.5cqw; flex:none}
+.chip img{display:block; width:100%; height:auto}
+.roles{display:grid; grid-template-columns:repeat(4, auto); gap:3cqw}
+.roles div{display:grid; gap:.3cqw}
+.roles dt{font-family:var(--mono); font-size:var(--t-s); letter-spacing:.14em; text-transform:uppercase; color:var(--gold)}
+.roles dd{font-family:var(--title); font-stretch:92%; font-size:var(--t-m); line-height:1.25; color:var(--bone)}
+
+/* 02 community */
+.s-who .bg{left:40%}
+.s-who .bg img{object-position:50% 40%; filter:saturate(.85)}
+.s-who .shade{background:linear-gradient(90deg, var(--bg) 40%, var(--shade-mid) 56%, var(--shade-0) 78%)}
+.s-who .content{grid-template-columns:44cqw 1fr; align-content:center}
+.s-who h2{font-size:5.2cqw}
+.s-who .col{display:grid; gap:2.2cqw; align-content:center}
+.trads{display:grid; grid-template-columns:1fr 1fr; gap:0 2cqw}
+.trads li{border-top:1px solid var(--line); padding:1.1cqw 0 1.3cqw; display:grid; gap:.35cqw}
+.trads b{font-family:var(--title); font-stretch:72%; font-weight:750; font-size:2.5cqw; line-height:1; letter-spacing:-.01em; text-transform:uppercase}
+
+/* 03 problem */
+.s-prob{background:var(--ink)}
+.s-prob .content{grid-template-rows:auto 1fr auto}
+.s-prob h2{font-size:8cqw; max-width:13em; align-self:center}
+.s-prob .content{grid-template-rows:auto 1fr auto; gap:1.6cqw}
+.phead{display:flex; justify-content:space-between; align-items:baseline; gap:3cqw}
+.pline{font-family:var(--title); font-stretch:92%; font-size:var(--t-l); line-height:1.2; color:var(--bone); text-align:right}
+.pline em{font-size:1.15em}
+.woes{display:grid; align-content:center; border-bottom:1px solid var(--line)}
+.woes li{position:relative; display:grid; grid-template-columns:6.4cqw 1fr auto; align-items:center; column-gap:1.6cqw; padding:.75cqw 0; border-top:1px solid var(--line); transition:color .4s}
+.woes li::before{content:""; position:absolute; left:0; right:0; top:-1px; height:1px; background:var(--gold); transform-origin:left; opacity:0}
+.woes .n{font-family:var(--mono); font-size:var(--t-s); color:var(--gold); letter-spacing:.12em}
+.woes .w{font-family:var(--title); font-stretch:64%; font-weight:850; font-size:5.9cqw; line-height:.92; letter-spacing:-.005em; text-transform:uppercase}
+.woes .w.out{-webkit-text-stroke:.11cqw var(--bone)}
+.woes .tag{font-family:var(--mono); font-size:var(--t-s); letter-spacing:.16em; text-transform:uppercase; color:var(--bone-dim)}
+.woes li:hover{color:var(--gold)}
+.woes li:hover .w.out{-webkit-text-stroke-color:var(--gold)}
+.reasons{display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); border-top:1px solid var(--line2)}
+.reasons{position:relative}
+.reasons::before{content:""; position:absolute; left:0; right:0; top:-1px; height:1px; background:var(--gold); transform-origin:left; opacity:0}
+.reasons li{position:relative; padding:1.5cqw 1.6cqw 0 0; display:grid; gap:.7cqw; align-content:start}
+.reasons li + li{padding-left:1.6cqw; border-left:1px solid var(--line)}
+.reasons .n{font-family:var(--title); font-stretch:64%; font-weight:850; font-size:2.6cqw; line-height:1; color:var(--gold)}
+.reasons b{font-family:var(--title); font-stretch:70%; font-weight:780; font-size:2.5cqw; line-height:.98; text-transform:uppercase; letter-spacing:.005em}
+
+/* 04 aim */
+.s-aim .bg{left:42%}
+.s-aim .bg img{object-position:50% 40%; filter:saturate(.7) brightness(.8)}
+.s-aim .shade{background:linear-gradient(90deg, var(--bg) 42%, var(--shade-mid) 60%, var(--shade-0) 90%), linear-gradient(0deg, var(--shade-mid), var(--shade-0) 40%)}
+.s-aim .content{grid-template-rows:auto 1fr auto auto; align-content:stretch; gap:1.2cqw}
+.s-aim .big{align-self:center; font-size:8.4cqw}
+.tg{display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:2.2cqw; max-width:60cqw; border-top:1px solid var(--line); padding-top:1.2cqw}
+.tg div{display:grid; gap:.35cqw; align-content:start}
+.tg dt{font-family:var(--mono); font-size:var(--t-s); letter-spacing:.14em; text-transform:uppercase; color:var(--gold)}
+.tg dd{font-family:var(--title); font-stretch:92%; font-size:1.45cqw; line-height:1.3; color:var(--bone)}
+.s-aim .lead{max-width:24em}
+
+/* 05 solution */
+.s-sol{background:radial-gradient(70% 90% at 72% 55%, var(--glow) 0%, var(--shade-0) 60%), var(--bg)}
+.s-sol .content{grid-template-columns:41cqw 1fr; column-gap:3cqw; align-items:center}
+.s-sol .col{display:grid; gap:2.2cqw}
+.doors li{display:grid; grid-template-columns:1fr auto; align-items:center; gap:1.4cqw; border-top:1px solid var(--line); padding:1.15cqw 0}
+.doors li:last-child{border-bottom:1px solid var(--line)}
+.doors .body{display:block; font-size:1.45cqw; margin-top:.2cqw}
+.cnt{display:grid; justify-items:end; gap:.2cqw; text-align:right}
+.cnt .v{font-family:var(--title); font-stretch:64%; font-weight:850; font-size:4.4cqw; line-height:.85; color:var(--gold)}
+.doors .n{font-family:var(--title); font-stretch:64%; font-weight:850; font-size:5.4cqw; line-height:.85; color:var(--gold)}
+.doors b{display:block; font-family:var(--title); font-stretch:78%; font-weight:750; font-size:var(--t-l); line-height:1.05; text-transform:uppercase; letter-spacing:.01em}
+.s-sol .content{perspective:160cqw}
+.laptop{position:relative; transform-style:preserve-3d; transform:rotateY(var(--ry, 0deg)) rotateX(var(--rx, 0deg)); transition:transform .6s cubic-bezier(.2,.7,.2,1)}
+.laptop img{display:block; width:100%; height:auto; transform:rotateY(-16deg) rotateX(5deg) rotateZ(.5deg); transform-origin:40% 50%; filter:drop-shadow(0 3cqw 4cqw rgba(0,0,0,.6))}
+
+/* 07 journey: dealt stack of screens */
+.s-journey .content{grid-template-columns:minmax(0,1fr) 45cqw; align-items:center; gap:3.5cqw}
+.s-journey h2{font-size:5cqw}
+.s-journey .col{display:grid; gap:1.6cqw}
+.loop li{display:grid; grid-template-columns:6.5cqw minmax(0,1fr); column-gap:1.2cqw; row-gap:.2cqw; border-top:1px solid var(--line); padding:.85cqw 0}
+.loop li:last-child{border-bottom:1px solid var(--line)}
+.loop .mono{grid-row:span 2; color:var(--gold); letter-spacing:.14em; text-transform:uppercase; padding-top:.45cqw}
+.loop b{font-family:var(--title); font-stretch:78%; font-weight:750; font-size:var(--t-l); line-height:1.05; text-transform:uppercase}
+.loop .body{font-size:1.35cqw; line-height:1.35}
+.stack{position:relative; width:45cqw; aspect-ratio:45/33.5}
+.stack figure{position:absolute; margin:0; width:34cqw; aspect-ratio:16/9; border-radius:.5cqw; overflow:hidden; border:1px solid var(--line2); box-shadow:0 2.2cqw 4cqw rgba(0,0,0,.6); transition:transform .5s cubic-bezier(.2,.7,.2,1)}
+.stack img{display:block; width:100%; height:100%; object-fit:cover}
+.stack .a{left:0; top:0} .stack .b{left:5.5cqw; top:7cqw} .stack .c{left:11cqw; top:14cqw}
+.stack figure:hover{transform:translateY(-1cqw); z-index:3}
+.stack figcaption{position:absolute; left:.9cqw; bottom:.9cqw; padding:.35cqw .8cqw; border-radius:99px; background:rgba(10,12,11,.82); font-family:var(--mono); font-size:var(--t-s); letter-spacing:.14em; text-transform:uppercase; color:var(--gold)}
+
+/* 06 games: film strip */
+.s-play .content{grid-template-rows:auto 1fr}
+.s-play .head{display:flex; justify-content:space-between; align-items:flex-end; gap:3cqw}
+.s-play .head .body{max-width:22em; text-align:right}
+.strip{align-self:center; background:var(--ink); margin:0 calc(var(--px) * -1); padding:2.3cqw var(--px); position:relative}
+.strip::before,.strip::after{content:""; position:absolute; left:0; right:0; height:1.1cqw;
+  background:repeating-linear-gradient(90deg, transparent 0 .9cqw, rgba(239,231,210,.13) .9cqw 2.3cqw, transparent 2.3cqw 3.2cqw)}
+.strip::before{top:.75cqw}
+.strip::after{bottom:.75cqw}
+.frames{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:1.6cqw}
+.frame{display:grid; gap:.8cqw; align-content:start}
+.frame .cap{font-size:1.3cqw; line-height:1.35}
+.frame .pic{position:relative; aspect-ratio:16/9; overflow:hidden; border-radius:.25cqw; background:var(--bg2)}
+.frame .pic img,.frame .pic svg{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; display:block}
+.frame .tc{display:flex; justify-content:space-between; font-family:var(--mono); font-size:var(--t-s); letter-spacing:.1em; color:var(--gold)}
+.frame .pic img{transition:transform .8s cubic-bezier(.2,.7,.2,1)}
+.frame:hover .pic img{transform:scale(1.06)}
+.frame b{font-family:var(--title); font-stretch:78%; font-weight:750; font-size:var(--t-l); line-height:1.05; text-transform:uppercase}
+
+/* 07 reach */
+.s-reach .content{grid-template-columns:32cqw 1fr; column-gap:5cqw; align-items:center}
+.s-reach .col{display:grid; gap:2.2cqw}
+.chans li{border-top:1px solid var(--line); padding:1cqw 0; font-family:var(--title); font-stretch:86%; font-weight:600; font-size:var(--t-m); display:flex; justify-content:space-between; gap:1cqw}
+.chans li:last-child{border-bottom:1px solid var(--line)}
+.funnel{display:grid; gap:2.3cqw}
+.funnel li{display:grid; grid-template-columns:1fr; gap:.7cqw}
+.funnel .row{display:flex; align-items:baseline; gap:1.6cqw}
+.funnel .row .body{color:var(--bone)}
+.funnel .v{font-family:var(--title); font-stretch:64%; font-weight:850; font-size:6.2cqw; line-height:.85; color:var(--bone)}
+.funnel .bar{height:1.1cqw; background:var(--line); position:relative}
+.funnel .bar i{position:absolute; left:0; top:0; bottom:0; width:var(--v); background:var(--gold)}
+.funnel li:nth-child(2) .bar i{background:var(--moss)}
+.funnel li:nth-child(3) .bar i{background:var(--bone-dim)}
+
+/* 08 timeline: edit suite, 27 Oct 2026 = 0%, 15 Jan 2027 = 100% */
+.s-time .content{grid-template-rows:auto 1fr}
+.s-time .head{display:flex; justify-content:space-between; align-items:flex-end; gap:3cqw}
+.s-time .head > div:first-child{flex:1; min-width:0}
+.money{display:flex; gap:2.6cqw}
+.money div{display:grid; gap:.3cqw; border-left:1px solid var(--line2); padding-left:1.2cqw}
+.money b{font-family:var(--title); font-stretch:64%; font-weight:850; font-size:4.6cqw; line-height:.85; color:var(--gold)}
+.edit{position:relative; align-self:center; display:grid; grid-template-columns:19cqw 1fr; background:var(--ink); border:1px solid var(--line); border-radius:var(--r); overflow:hidden}
+.edit .lab{display:flex; align-items:center; gap:1cqw; padding:0 1.2cqw; height:4.6cqw; border-top:1px solid var(--line); font-family:var(--title); font-stretch:86%; font-weight:600; font-size:var(--t-m); background:var(--bg2)}
+.edit .lab .v{font-family:var(--mono); font-size:var(--t-s); color:var(--bone-dim); letter-spacing:.06em}
+.edit .lab.ruler{height:3cqw; border-top:0}
+.lane{position:relative; height:4.6cqw; border-top:1px solid var(--line);
+  background:
+    linear-gradient(var(--line),var(--line)) 14.29% 0 / 1px 100% no-repeat,
+    linear-gradient(var(--line),var(--line)) 47.25% 0 / 1px 100% no-repeat,
+    linear-gradient(var(--line),var(--line)) 81.32% 0 / 1px 100% no-repeat}
+.lane.ruler{height:3cqw; border-top:0; background:
+    repeating-linear-gradient(90deg, var(--line2) 0 1px, transparent 1px 7.6923%) 0 100% / 100% .6cqw no-repeat}
+.s-time .edit .lab, .s-time .lane:not(.ruler){height:4cqw}
+.s-time .clip{top:.7cqw; bottom:.7cqw}
+.s-time .lab .nm{display:grid; gap:.3cqw; line-height:1}
+.s-time .lab small{font-family:var(--mono); font-size:var(--t-s); font-weight:400; font-stretch:100%; color:var(--bone-dim); letter-spacing:.04em}
+.lane.ruler span{position:absolute; top:.55cqw; font-family:var(--mono); font-size:var(--t-s); color:var(--bone-dim); padding-left:.5cqw; letter-spacing:.08em}
+.clip{position:absolute; top:.85cqw; bottom:.85cqw; left:var(--s); width:var(--d); border-radius:.3cqw; background:var(--moss); display:flex; align-items:center; padding:0 .7cqw; overflow:hidden}
+.clip.gold{background:var(--gold)}
+.clip span{font-family:var(--mono); font-size:var(--t-s); color:var(--ink); white-space:nowrap; letter-spacing:.04em}
+.tag-out{position:absolute; top:50%; transform:translateY(-50%); font-family:var(--mono); font-size:var(--t-s); color:var(--bone-dim); white-space:nowrap; right:calc(100% - var(--s) + .8cqw)}
+.tag-in{position:absolute; top:50%; transform:translateY(-50%); left:calc(var(--e) + .8cqw); font-family:var(--mono); font-size:var(--t-s); color:var(--bone-dim); white-space:nowrap}
+.playwrap{position:absolute; left:19cqw; right:0; top:0; bottom:0; pointer-events:none}
+.playhead{position:absolute; top:0; bottom:0; left:61.54%; width:2px; background:var(--gold); box-shadow:0 0 1.4cqw var(--gold); z-index:2}
+.playhead::before{content:""; position:absolute; top:0; left:-.6cqw; width:1.3cqw; height:1.1cqw; background:var(--gold); clip-path:polygon(0 0,100% 0,50% 100%)}
+.playhead span{position:absolute; top:.15cqw; left:1.1cqw; font-family:var(--mono); font-size:var(--t-s); color:var(--gold); white-space:nowrap; letter-spacing:.08em; background:var(--ink); padding:0 .4cqw}
+
+/* 09 impact: split screen */
+.s-impact{background:var(--ink)}
+.s-impact .content{grid-template-rows:auto 1fr auto; gap:2.4cqw}
+.split{display:grid; grid-template-columns:1fr auto 1fr; align-items:stretch; border-top:1px solid var(--line); border-bottom:1px solid var(--line)}
+.half{padding:2.2cqw 0; display:grid; align-content:center; gap:.8cqw}
+.half.before{opacity:.55}
+.half.after{text-align:right}
+.half .big{font-size:8.4cqw; white-space:nowrap}
+.seam{display:grid; place-items:center; padding:0 3cqw; position:relative}
+.seam::before{content:""; position:absolute; top:0; bottom:0; left:50%; width:1px; background:var(--line2)}
+.seam span{position:relative; font-family:var(--mono); font-size:var(--t-s); letter-spacing:.12em; text-transform:uppercase; color:var(--ink); background:var(--gold); border-radius:99em; padding:.6cqw 1.4cqw; white-space:nowrap}
+.figs{display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:2.2cqw}
+.figs li{display:grid; gap:.6cqw}
+.figs .v{font-family:var(--title); font-stretch:64%; font-weight:850; font-size:5.6cqw; white-space:nowrap; line-height:.85; color:var(--gold)}
+
+/* 10 fin */
+.s-fin .bg img{object-position:50% 55%; filter:saturate(.8) brightness(.9)}
+.s-fin .shade{background:linear-gradient(90deg, var(--shade) 0%, var(--shade-mid) 48%, var(--shade-0) 85%), linear-gradient(0deg, var(--shade) 0%, var(--shade-0) 50%)}
+.s-fin .content{grid-template-rows:1fr auto auto auto; align-content:end}
+.s-fin .mega em{font-size:1.05em; line-height:.7; color:var(--gold)}
+.s-fin .lead{max-width:24em}
+.s-crew .content{grid-template-rows:auto 1fr; gap:2.4cqw}
+.crewhead{display:flex; justify-content:space-between; align-items:flex-end; gap:3cqw}
+.crew{display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); column-gap:2.4cqw; align-content:center}
+.crew li{display:grid; gap:.45cqw; border-top:1px solid var(--line); padding:1.25cqw 0 1.45cqw}
+.crew .role{font-family:var(--mono); font-size:var(--t-s); letter-spacing:.12em; text-transform:uppercase; color:var(--gold)}
+.crew b{font-family:var(--title); font-stretch:70%; font-weight:780; font-size:2.6cqw; line-height:1; text-transform:uppercase; letter-spacing:.01em}
+.crew .id{font-family:var(--mono); font-size:var(--t-s); color:var(--bone-dim); letter-spacing:.08em}
+.crew .lead-role b{color:var(--gold)}
+.s-qa{background:var(--ink)}
+.s-qa .lead{margin-top:1.6cqw}
+.qmark{position:absolute; right:30cqw; bottom:-9cqw; font-family:var(--serif); font-style:italic; font-size:62cqw; line-height:1; color:transparent; -webkit-text-stroke:.12cqw var(--line2); pointer-events:none}
+.s-qa .content{grid-template-columns:1fr 34cqw; column-gap:4cqw; align-items:center}
+.s-qa .big em{font-size:1.02em; line-height:.8}
+.contact{display:grid; background:var(--shade-mid); border:1px solid var(--line); border-radius:var(--r); padding:.6cqw 1.8cqw}
+.contact div{display:grid; gap:.25cqw; padding:1cqw 0; border-top:1px solid var(--line)}
+.contact div:first-child{border-top:0}
+.contact dt{font-family:var(--mono); font-size:var(--t-s); letter-spacing:.14em; text-transform:uppercase; color:var(--gold)}
+.contact dd{font-family:var(--title); font-stretch:92%; font-size:var(--t-m); line-height:1.25; color:var(--bone); overflow-wrap:anywhere; user-select:text}
+.endcard{display:flex; justify-content:space-between; align-items:flex-end; gap:3cqw; border-top:1px solid var(--line); padding-top:1.4cqw}
+
+/* ---------- motion (stage mode only) ---------- */
+@media (prefers-reduced-motion: no-preference) and (min-width: 900px) and (min-height: 520px){
+  .grain{animation:grain .9s steps(5) infinite}
+  @keyframes grain{0%{transform:translate(0,0)} 20%{transform:translate(-4%,3%)} 40%{transform:translate(3%,-5%)} 60%{transform:translate(-2%,6%)} 80%{transform:translate(5%,1%)} 100%{transform:translate(0,0)}}
+  .is-active .bg img{animation:push 14s cubic-bezier(.2,.6,.2,1) both}
+  @keyframes push{from{transform:scale(1.16) translate(-1.5%, 1%)}}
+  .is-active .ln > span{animation:up 1.1s cubic-bezier(.16,1,.3,1) both; animation-delay:calc(var(--i, 0) * 110ms + 300ms)}
+  @keyframes up{from{transform:translateY(112%)}}
+  .is-active .fx{animation:fx 1s cubic-bezier(.16,1,.3,1) both; animation-delay:calc(var(--i, 0) * 110ms + 300ms)}
+  @keyframes fx{from{opacity:0; transform:translateY(1.4cqw)}}
+  .is-active .laptop img{animation:tilt 1.6s cubic-bezier(.16,1,.3,1) both .25s}
+  @keyframes tilt{from{opacity:0; transform:rotateY(-34deg) rotateX(10deg) translateX(6%)}}
+  .is-active .funnel .bar i{animation:grow 1.3s cubic-bezier(.16,1,.3,1) both; animation-delay:calc(var(--i, 0) * 140ms + 500ms)}
+  @keyframes grow{from{width:0}}
+  .is-active .clip{animation:clip .9s cubic-bezier(.16,1,.3,1) both; animation-delay:calc(var(--i, 0) * 110ms + 450ms)}
+  @keyframes clip{from{opacity:0; transform:translateX(-2cqw)}}
+  .is-active .playhead{animation:scrub 1.8s cubic-bezier(.65,0,.35,1) both .5s}
+  @keyframes scrub{from{left:0; opacity:0}}
+  .is-active .seam span{animation:fx .9s cubic-bezier(.16,1,.3,1) both .7s}
+  .wipe.go{animation:wipe 1s cubic-bezier(.7,0,.25,1) both}
+  .wipe.go.back{animation-name:wipeback}
+  @keyframes wipe{from{transform:translateX(-120%)} to{transform:translateX(120%)}}
+  @keyframes wipeback{from{transform:translateX(120%)} to{transform:translateX(-120%)}}
+  .flare{animation:drift 18s ease-in-out infinite alternate}
+  @keyframes drift{0%{transform:translate(0,0) scale(1)} 50%{transform:translate(-10cqw,8cqw) scale(1.12)} 100%{transform:translate(-22cqw,2cqw) scale(.94)}}
+  .is-active .rec{animation:rec 2s steps(2, jump-none) infinite}
+  @keyframes rec{50%{opacity:.25}}
+  .is-active .reasons::before{animation:sweep 1.4s cubic-bezier(.65,0,.35,1) both .6s}
+  .is-active .woes li::before{animation:sweep 1.4s cubic-bezier(.65,0,.35,1) both; animation-delay:calc(var(--i, 0) * 110ms + 350ms)}
+  @keyframes sweep{0%{transform:scaleX(0); opacity:1} 70%{transform:scaleX(1); opacity:1} 100%{transform:scaleX(1); opacity:0}}
+  .is-active .woes .n, .is-active .woes .tag{animation:fx .9s cubic-bezier(.16,1,.3,1) both; animation-delay:calc(var(--i, 0) * 110ms + 500ms)}
+  .is-active .stack figure{animation:deal 1.2s cubic-bezier(.16,1,.3,1) both; animation-delay:calc(var(--j, 0) * 170ms + 450ms)}
+  @keyframes deal{from{opacity:0; transform:translate(-5cqw, 4cqw) rotate(-4deg)}}
+  .is-active .crew li{animation:fx .9s cubic-bezier(.16,1,.3,1) both; animation-delay:calc(var(--j, 0) * 70ms + 450ms)}
+  .is-active .qmark{animation:qm 2.4s cubic-bezier(.16,1,.3,1) both .2s}
+  @keyframes qm{from{opacity:0; transform:translateY(6cqw) rotate(-8deg)}}
+  .is-active .reasons li, .is-active .trads li, .is-active .doors li, .is-active .chans li{animation:fx .9s cubic-bezier(.16,1,.3,1) both; animation-delay:calc(var(--j, 0) * 90ms + 650ms)}
+}
+
+/* ---------- stacked mode: small windows and phones ---------- */
+@media (max-width: 899px), (max-height: 519px){
+  html,body{height:auto}
+  body{display:block}
+  .viewport{container-type:normal; display:block; padding-block:16px}
+  .stage{width:100%; aspect-ratio:auto; container-type:normal; display:grid; gap:14px; overflow:visible; background:none; border-radius:0; cursor:auto;
+    --lb:0px; --px:22px; --t-mega:3.6rem; --t-big:3.1rem; --t-h:2rem; --t-l:1.2rem; --t-m:1rem; --t-s:.74rem; --gap:16px; --r:8px}
+  .lbar,.grain,.vig,.wipe,.flare{display:none}
+  .slide{position:relative; inset:auto; opacity:1; visibility:visible; border-radius:12px; min-height:0}
+  .content{position:relative; inset:auto; padding:30px var(--px) 30px; z-index:1}
+  .credit{right:12px; bottom:10px}
+  .roles{grid-template-columns:1fr 1fr; gap:12px 18px}
+  .s-open .billing{flex-direction:column; align-items:flex-start; gap:16px}
+  .chip{width:140px; padding:6px 10px}
+  .logo{width:180px}
+  .s-open, .s-fin{min-height:560px}
+  .s-open .content, .s-fin .content{min-height:560px}
+  .s-who .bg, .s-aim .bg{left:0}
+  .s-who .shade, .s-aim .shade{background:linear-gradient(0deg, var(--bg) 30%, var(--shade-mid) 70%, var(--shade-0) 100%)}
+  .s-who .content, .s-aim .content{padding-top:220px}
+  .s-who .content, .s-sol .content, .s-reach .content{grid-template-columns:1fr}
+  .trads b{font-size:1.5rem}
+  .s-who h2{font-size:2rem}
+  .s-open .mega{font-size:3.8rem}
+  .kicker > span::before{width:18px; margin-right:8px}
+  .tag-in{display:none}
+  .s-prob h2{font-size:2.2rem}
+  .reasons b{font-size:1.25rem}
+  .reasons .n{font-size:1.2rem}
+  .reasons li + li{padding-left:0; border-left:0}
+  .phead{flex-direction:column; gap:10px}
+  .pline{text-align:left}
+  .woes li{grid-template-columns:2.4rem 1fr; padding:10px 0}
+  .woes .w{font-size:1.9rem}
+  .woes .tag{grid-column:2}
+  .reasons{grid-template-columns:1fr}
+  .reasons li{grid-template-columns:2.4rem 1fr; padding:10px 0; border-bottom:1px solid var(--line)}
+  .doors li{grid-template-columns:1fr auto}
+  .cnt .v{font-size:2.2rem}
+  .doors .body{font-size:.95rem}
+  .doors .n{font-size:2.6rem}
+  .laptop img{transform:none}
+  .s-play .head, .s-time .head{flex-direction:column; align-items:flex-start}
+  .s-play .head .body{text-align:left}
+  .strip{margin:0 calc(var(--px) * -1); padding:22px var(--px)}
+  .strip::before,.strip::after{height:8px; top:6px; background:repeating-linear-gradient(90deg, transparent 0 7px, var(--bg2) 7px 18px, transparent 18px 25px)}
+  .strip::after{top:auto; bottom:6px}
+  .frames{grid-template-columns:1fr}
+  .funnel .v, .money b, .figs .v{font-size:2.6rem}
+  .edit{grid-template-columns:1fr}
+  .edit .lab{height:auto; padding:10px 12px 4px; border-top:1px solid var(--line)}
+  .edit .lab.ruler, .lane.ruler, .tag-out, .playhead span{display:none}
+  .lane{height:30px; border-top:0}
+  .clip{top:6px; bottom:6px}
+  .clip span{display:none}
+  .playwrap{display:none}
+  .split{grid-template-columns:1fr}
+  .half.after{text-align:left}
+  .half .big{font-size:2.8rem}
+  .seam{padding:10px 0; justify-items:start}
+  .seam::before{display:none}
+  .figs{grid-template-columns:1fr; gap:14px}
+  .endcard{flex-direction:column; align-items:flex-start}
+  .s-journey .content{grid-template-columns:1fr}
+  .loop li{grid-template-columns:5.5rem minmax(0,1fr); padding:12px 0}
+  .loop .body, .frame .cap{font-size:.95rem}
+  .stack{width:100%}
+  .stack figure{width:76%}
+  .stack .b{left:12%; top:20%} .stack .c{left:24%; top:40%}
+  .tg{grid-template-columns:1fr; max-width:none; gap:12px}
+  .tg dd{font-size:.95rem}
+  .crewhead{flex-direction:column; align-items:flex-start; gap:10px}
+  .crewhead .mono{text-align:left !important}
+  .crew{grid-template-columns:1fr 1fr; column-gap:16px}
+  .crew b{font-size:1.1rem}
+  .s-qa .content{grid-template-columns:1fr; row-gap:20px}
+  .qmark{font-size:16rem; bottom:-4rem}
+  .contact{padding:4px 16px}
+  .contact div{padding:10px 0}
+}
+</style>
+
+<div class="viewport">
+<main class="stage" id="stage" aria-roledescription="slide deck">
+
+<!-- 01 opening -->
+<section class="slide s-open is-active" id="s1" data-name="Opening" aria-label="Opening">
+  <div class="bg"><img src="img/village-entrance.jpg" alt="Entrance sign and thatched buildings of the Mah Meri Cultural Village"></div>
+  <div class="shade"></div>
+  <div class="content">
+    <p class="kicker ln" style="--i:0"><span>Pulau Carey, Selangor · A SULAM proposal</span></p>
+    <h1 class="mega"><span class="ln" style="--i:1"><span>Mah Meri</span></span></h1>
+    <p class="lead ln" style="--i:2"><span>Digitalising a <em>living</em> heritage, one story, one game, one visit at a time.</span></p>
+    <div class="billing fx" style="--i:4">
+      <img class="logo" src="img/um-logo-light.png" alt="Universiti Malaya">
+      <dl class="roles">
+        <div><dt>Presented by</dt><dd>OCC3 Group 3</dd></div>
+        <div><dt>Collaborate with</dt><dd>Mah Meri Cultural Village</dd></div>
+        <div><dt>Course</dt><dd>WIX2001 · Indirect SULAM</dd></div>
+        <div><dt>Lecturer</dt><dd>Madam Mas Idayu binti Md Sabri</dd></div>
+      </dl>
+    </div>
+  </div>
+  <p class="credit">Photo: VisitMalaysia.info</p>
+</section>
+
+<!-- 02 community -->
+<section class="slide s-who" id="s2" data-name="The community" aria-label="The community">
+  <div class="bg"><img src="img/mah-meri-performers.jpg" alt="Mah Meri performers in woven leaf costumes holding carved masks"></div>
+  <div class="shade"></div>
+  <div class="content">
+    <div class="col">
+      <p class="kicker ln" style="--i:0"><span>01 · The community</span></p>
+      <h2><span class="ln" style="--i:1"><span>A living culture</span></span><span class="ln" style="--i:2"><span>on <em>Pulau Carey</em></span></span></h2>
+      <p class="body fx" style="--i:3">An Orang Asli community in Selangor, keeping four traditions alive.</p>
+      <ul class="trads fx" style="--i:4">
+        <li style="--j:0"><span class="mono">Woodcarving</span><b>Moyang</b></li>
+        <li style="--j:1"><span class="mono">Leaf weaving</span><b>Anyaman</b></li>
+        <li style="--j:2"><span class="mono">Dance</span><b>Main Jo’oh</b></li>
+        <li style="--j:3"><span class="mono">Ancestors’ day</span><b>Hari Moyang</b></li>
+      </ul>
+    </div>
+  </div>
+  <p class="credit">Photo: Time Out Kuala Lumpur</p>
+</section>
+
+<!-- 03 problem -->
+<section class="slide s-prob" id="s3" data-name="The problem" aria-label="The problem">
+  <div class="flare" aria-hidden="true"></div>
+  <div class="content">
+    <p class="kicker ln" style="--i:0"><span>02 · The problem</span></p>
+    <h2><span class="ln" style="--i:1"><span>Few young Malaysians</span></span><span class="ln" style="--i:2"><span>know this heritage</span></span><span class="ln" style="--i:3"><span><em>exists.</em></span></span></h2>
+    <ol class="reasons">
+      <li style="--j:0"><span class="n">01</span><b>Rarely seen online</b></li>
+      <li style="--j:1"><span class="n">02</span><b>Told as dry text</b></li>
+      <li style="--j:2"><span class="n">03</span><b>Stories not understood</b></li>
+      <li style="--j:3"><span class="n">04</span><b>Visits hard to plan</b></li>
+      <li style="--j:4"><span class="n">05</span><b>Soon forgotten</b></li>
+    </ol>
+  </div>
+</section>
+
+<!-- 04 aim -->
+<section class="slide s-aim" id="s4" data-name="The aim" aria-label="The aim">
+  <div class="bg"><img src="img/moyang-masks.jpg" alt="Carved Mah Meri mask and two wooden figures on display"></div>
+  <div class="shade"></div>
+  <div class="content">
+    <p class="kicker ln" style="--i:0"><span>03 · The aim</span></p>
+    <p class="big"><span class="ln" style="--i:1"><span>Know it.</span></span><span class="ln" style="--i:2"><span class="out">Value it.</span></span><span class="ln" style="--i:3"><span>Visit it.</span></span></p>
+    <p class="lead fx" style="--i:5">More young Malaysians who know, value and visit Mah Meri heritage.</p>
+    <dl class="tg fx" style="--i:6">
+      <div><dt>Primary users</dt><dd>Young adults aged 16 to 30, especially Klang Valley students</dd></div>
+      <div><dt>Secondary users</dt><dd>Heritage and tourism organisations, including MMCV</dd></div>
+      <div><dt>Approach</dt><dd>Indirect SULAM, reached online through the portal and campaign</dd></div>
+    </dl>
+  </div>
+  <p class="credit">Photo: Tourism Malaysia</p>
+</section>
+
+<!-- 05 solution -->
+<section class="slide s-sol" id="s5" data-name="The solution" aria-label="The solution">
+  <div class="flare" aria-hidden="true"></div>
+  <div class="content">
+    <div class="col">
+      <p class="kicker ln" style="--i:0"><span>04 · The solution</span></p>
+      <h2><span class="ln" style="--i:1"><span>One journey.</span></span><span class="ln" style="--i:2"><span><em>Three</em> doors.</span></span></h2>
+      <ul class="doors fx" style="--i:3">
+        <li style="--j:0"><span><b>Play</b><span class="body">Gather, weave, carve and dance</span></span><span class="cnt"><span class="v" data-count="4">4</span><span class="mono">acts</span></span></li>
+        <li style="--j:1"><span><b>Learn</b><span class="body">Spirit Archive of history and myth</span></span><span class="cnt"><span class="v" data-count="8">8</span><span class="mono">treasures</span></span></li>
+        <li style="--j:2"><span><b>Support</b><span class="body">Crafts, village tours and donations</span></span><span class="cnt"><span class="v" data-count="3">3</span><span class="mono">ways</span></span></li>
+      </ul>
+    </div>
+    <figure class="laptop"><img src="img/laptop-game.png" alt="Title screen of Spirit of the Mangroves on a laptop"></figure>
+  </div>
+</section>
+
+<!-- 06 games -->
+<section class="slide s-play" id="s6" data-name="The game" aria-label="The game">
+  <div class="flare" aria-hidden="true"></div>
+  <div class="content">
+    <div class="head">
+      <div style="display:grid; gap:1.2cqw">
+        <p class="kicker ln" style="--i:0"><span>05 · Spirit of the Mangroves</span></p>
+        <h2><span class="ln" style="--i:1"><span>Four acts, <em>one island</em></span></span></h2>
+      </div>
+      <p class="body fx" style="--i:2">Players cross an illustrated map of Pulau Carey. Each act teaches one tradition by doing it.</p>
+    </div>
+    <div class="strip fx" style="--i:3">
+      <ol class="frames">
+        <li class="frame">
+          <div class="pic"><img src="img/g-act1-gather.jpg" alt="Act I: collecting pandanus leaves and Nyireh Batu wood in the mangrove swamp"></div>
+          <div class="tc"><span>Act I</span><span>Mangrove Swamp</span></div>
+          <b>Gather</b>
+          <span class="body cap">Find pandanus leaves and Nyireh Batu wood</span>
+        </li>
+        <li class="frame">
+          <div class="pic"><img src="img/g-act2-weave.jpg" alt="Act II: weaving natural and red-dyed strips on a loom"></div>
+          <div class="tc"><span>Act II</span><span>Weaver’s Hut</span></div>
+          <b>Weave</b>
+          <span class="body cap">Follow the kelarai pattern to weave a tempok</span>
+        </li>
+        <li class="frame">
+          <div class="pic"><img src="img/g-act3-carve.jpg" alt="Act III: chiselling a wood block to reveal Moyang Harimau Berantai"></div>
+          <div class="tc"><span>Act III</span><span>Carver’s Bench</span></div>
+          <b>Carve</b>
+          <span class="body cap">Match carvings, then free the Chained Tiger</span>
+        </li>
+        <li class="frame">
+          <div class="pic"><img src="img/g-act4-dance.jpg" alt="Act IV: rhythm game around the ceremonial fire"></div>
+          <div class="tc"><span>Act IV</span><span>Ceremonial Fire</span></div>
+          <b>Dance</b>
+          <span class="body cap">Keep the Main Jo’oh rhythm with bamboo stampers</span>
+        </li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- 07 journey -->
+<section class="slide s-journey" id="s7" data-name="Inside the journey" aria-label="Inside the journey">
+  <div class="flare" aria-hidden="true"></div>
+  <div class="content">
+    <div class="col">
+      <p class="kicker ln" style="--i:0"><span>06 · Inside the journey</span></p>
+      <h2><span class="ln" style="--i:1"><span>Every act</span></span><span class="ln" style="--i:2"><span>leads <em>somewhere</em></span></span></h2>
+      <ul class="loop fx" style="--i:3">
+        <li><span class="mono">Guide</span><b>Moyang Tok Naning</b><span class="body">An ancestral spirit tells the story and sets each quest</span></li>
+        <li><span class="mono">Archive</span><b>The Spirit Archive</b><span class="body">Eight treasures of real history and ancestral myth, unlocked as you play</span></li>
+        <li><span class="mono">Support</span><b>The artisans</b><span class="body">Buy crafts, book a Pulau Carey tour or donate to preservation</span></li>
+      </ul>
+    </div>
+    <div class="stack">
+      <figure class="a" style="--j:0"><img src="img/g-moyang.jpg" alt="Island map with Moyang Tok Naning’s welcome dialogue"></figure>
+      <figure class="b" style="--j:1"><img src="img/g-archive.jpg" alt="The Spirit Archive with one of eight treasures restored"></figure>
+      <figure class="c" style="--j:2"><img src="img/g-support.jpg" alt="Support the Mah Meri Artisans panel with crafts, tour and donation links"></figure>
+    </div>
+  </div>
+</section>
+
+<!-- 08 reach -->
+<section class="slide s-reach" id="s8" data-name="Promotion" aria-label="Promotion">
+  <div class="flare" aria-hidden="true"></div>
+  <div class="content">
+    <div class="col">
+      <p class="kicker ln" style="--i:0"><span>07 · Promotion</span></p>
+      <h2><span class="ln" style="--i:1"><span>From a scroll</span></span><span class="ln" style="--i:2"><span>to a <em>visit</em></span></span></h2>
+      <ul class="chans fx" style="--i:3">
+        <li style="--j:0"><span>Instagram and TikTok</span><span class="mono">8–10 posts</span></li>
+        <li style="--j:1"><span>QR posters</span><span class="mono">UM · the village</span></li>
+        <li style="--j:2"><span>Student networks</span><span class="mono">UM · MMCV</span></li>
+      </ul>
+    </div>
+    <ol class="funnel">
+      <li class="fx" style="--i:2"><div class="row"><span class="v" data-count="1000">1,000</span><span class="body">young adults reached</span></div><div class="bar"><i style="--v:100%; --i:0"></i></div></li>
+      <li class="fx" style="--i:3"><div class="row"><span class="v" data-count="300">300</span><span class="body">portal visits</span></div><div class="bar"><i style="--v:30%; --i:1"></i></div></li>
+      <li class="fx" style="--i:4"><div class="row"><span class="v" data-count="100">100</span><span class="body">journeys completed</span></div><div class="bar"><i style="--v:10%; --i:2"></i></div></li>
+      <li class="fx" style="--i:5"><span class="mono" style="color:var(--gold)">Targets by 10 January 2027</span></li>
+    </ol>
+  </div>
+</section>
+
+<!-- 08 timeline -->
+<section class="slide s-time" id="s9" data-name="Timeline" aria-label="Timeline and budget">
+  <div class="flare" aria-hidden="true"></div>
+  <div class="content">
+    <div class="head">
+      <div style="display:grid; gap:1.2cqw">
+        <p class="kicker ln" style="--i:0"><span>08 · Timeline and budget</span></p>
+        <h2><span class="ln" style="--i:1"><span>Six phases to <em>mid-January</em></span></span></h2>
+      </div>
+      <div class="money fx" style="--i:2">
+        <div><b data-count="450" data-pre="RM">RM450</b><span class="mono">estimated budget</span></div>
+        <div><b>RM0</b><span class="mono">asked from MMCV</span></div>
+      </div>
+    </div>
+    <div class="edit fx" style="--i:3">
+      <div class="lab ruler"></div>
+      <div class="lane ruler"><span style="left:0%">Oct</span><span style="left:14.29%">Nov</span><span style="left:47.25%">Dec</span><span style="left:81.32%">Jan</span></div>
+      <div class="lab"><span class="v">P1</span><span class="nm">Initiate<small>19 Oct – 8 Nov</small></span></div>
+      <div class="lane"><i class="clip" style="--s:0%; --d:23.08%; --i:0"></i></div>
+      <div class="lab"><span class="v">P2</span><span class="nm">Survey &amp; build<small>9 – 29 Nov</small></span></div>
+      <div class="lane"><i class="clip" style="--s:23.08%; --d:23.08%; --i:1"></i></div>
+      <div class="lab"><span class="v">P3</span><span class="nm">Test &amp; stage<small>30 Nov – 13 Dec</small></span></div>
+      <div class="lane"><i class="clip" style="--s:46.15%; --d:15.38%; --i:2"></i></div>
+      <div class="lab"><span class="v">P4</span><span class="nm">Launch &amp; evaluate<small>14 – 27 Dec</small></span></div>
+      <div class="lane"><i class="clip gold" style="--s:61.54%; --d:15.38%; --i:3"></i></div>
+      <div class="lab"><span class="v">P5</span><span class="nm">Document<small>28 Dec – 10 Jan</small></span></div>
+      <div class="lane"><i class="clip" style="--s:76.92%; --d:15.38%; --i:4"></i></div>
+      <div class="lab"><span class="v">P6</span><span class="nm">Submit<small>11 – 17 Jan</small></span></div>
+      <div class="lane"><i class="clip" style="--s:92.31%; --d:7.69%; --i:5"></i></div>
+      <div class="playwrap" aria-hidden="true"><div class="playhead"><span>Go-live · W10</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 09 impact -->
+<section class="slide s-impact" id="s10" data-name="Impact" aria-label="Measuring impact">
+  <div class="flare" aria-hidden="true"></div>
+  <div class="content">
+    <p class="kicker ln" style="--i:0"><span>09 · Measuring impact</span></p>
+    <div class="split">
+      <div class="half before">
+        <span class="mono ln" style="--i:1"><span>Before</span></span>
+        <p class="big"><span class="ln" style="--i:2"><span>Pre-test</span></span></p>
+      </div>
+      <div class="seam"><span>Play all 4 acts</span></div>
+      <div class="half after">
+        <span class="mono ln" style="--i:3"><span style="color:var(--gold)">After</span></span>
+        <p class="big"><span class="ln" style="--i:4"><span>Post-test</span></span></p>
+      </div>
+    </div>
+    <ul class="figs">
+      <li class="fx" style="--i:5"><span class="v" data-count="25">25</span><span class="body">statements, rated 1 to 5</span></li>
+      <li class="fx" style="--i:6"><span class="v" data-count="50" data-suf="+">50+</span><span class="body">people take both tests</span></li>
+      <li class="fx" style="--i:7"><span class="v" data-count="0.8" data-dec="1">0.8</span><span class="body">point gain counts as success</span></li>
+      <li class="fx" style="--i:8"><span class="v" data-count="4" data-suf=" / 5">4 / 5</span><span class="body">average usefulness rating</span></li>
+      <li class="fx" style="--i:9"><span class="v" data-count="60" data-suf="%">60%</span><span class="body">say they will visit or learn more</span></li>
+    </ul>
+  </div>
+</section>
+
+<!-- crew -->
+<section class="slide s-crew" id="s11" data-name="The crew" aria-label="The team">
+  <div class="flare" aria-hidden="true"></div>
+  <div class="content">
+    <div class="crewhead">
+      <div style="display:grid; gap:1.2cqw">
+        <p class="kicker ln" style="--i:0"><span>10 · The crew</span></p>
+        <h2><span class="ln" style="--i:1"><span>Nine people, <em>one</em> story</span></span></h2>
+      </div>
+      <p class="mono fx" style="--i:2; text-align:right">OCC3 Group 3<br>FSKTM, Universiti Malaya</p>
+    </div>
+    <ul class="crew">
+      <li class="lead-role" style="--j:0"><span class="role">Team Leader · Project Manager</span><b>Tan Chee Keat</b><span class="id">25006123</span></li>
+      <li style="--j:1"><span class="role">Collaborator Liaison</span><b>Joe Vei Xiang Zu</b><span class="id">25005541</span></li>
+      <li style="--j:2"><span class="role">Needs Assessment · Evaluation</span><b>Khor Kai Yee</b><span class="id">25005596</span></li>
+      <li style="--j:3"><span class="role">Cultural Content</span><b>Teh Xu Zhe</b><span class="id">25006355</span></li>
+      <li style="--j:4"><span class="role">UI/UX · Graphic Design</span><b>Tey Yong Zhun</b><span class="id">25006379</span></li>
+      <li style="--j:5"><span class="role">Front-end Web Developer</span><b>Deric Ing Quan Chong</b><span class="id">25005537</span></li>
+      <li style="--j:6"><span class="role">Game Developer</span><b>Lee Wuey Yong</b><span class="id">25005996</span></li>
+      <li style="--j:7"><span class="role">Promotion · Social Media</span><b>Tan Liang Chuan</b><span class="id">24231773</span></li>
+      <li style="--j:8"><span class="role">Logistics · Finance · Documentation</span><b>Soo Kang Shi</b><span class="id">25005517</span></li>
+    </ul>
+  </div>
+</section>
+
+<!-- fin -->
+<section class="slide s-fin" id="s12" data-name="Thank you" aria-label="Thank you">
+  <div class="bg"><img src="img/village-courtyard.jpg" alt="Courtyard of the Mah Meri Cultural Village with a woven leaf cone and traditional buildings"></div>
+  <div class="shade"></div>
+  <div class="content">
+    <span></span>
+    <p class="kicker ln" style="--i:0"><span>11 · After the project</span></p>
+    <p class="mega"><span class="ln" style="--i:1"><span>Terima <em>kasih.</em></span></span></p>
+    <div class="endcard fx" style="--i:3">
+      <p class="lead">The portal stays with the village: free to host, handed over to MMCV.</p>
+      <p class="mono" style="text-align:right">OCC3 Group 3<br>WIX2001 SULAM · Universiti Malaya</p>
+    </div>
+  </div>
+  <p class="credit">Photo: VisitMalaysia.info</p>
+</section>
+
+<!-- questions -->
+<section class="slide s-qa" id="s13" data-name="Questions" aria-label="Questions">
+  <div class="flare" aria-hidden="true"></div>
+  <p class="qmark" aria-hidden="true">?</p>
+  <div class="content">
+    <div class="col">
+      <p class="kicker ln" style="--i:0"><span>12 · Questions</span></p>
+      <p class="big"><span class="ln" style="--i:1"><span>Any</span></span><span class="ln" style="--i:2"><span><em>questions?</em></span></span></p>
+      <p class="lead fx" style="--i:3">Thank you for listening.</p>
+    </div>
+    <dl class="contact fx" style="--i:4">
+      <div><dt>Project leader</dt><dd>Tan Chee Keat</dd></div>
+      <div><dt>Email</dt><dd>tankeat0613@gmail.com</dd></div>
+      <div><dt>Phone</dt><dd>011-5525 0616</dd></div>
+      <div><dt>Collaborator</dt><dd>Mah Meri Cultural Village · mmcv.org.my</dd></div>
+      <div><dt>Lecturer</dt><dd>Madam Mas Idayu binti Md Sabri</dd></div>
+    </dl>
+  </div>
+</section>
+
+<div class="vig" aria-hidden="true"></div>
+<div class="wipe" id="wipe" aria-hidden="true"></div>
+<div class="grain" id="grain" aria-hidden="true"></div>
+
+<div class="lbar top" aria-hidden="true">
+  <span><i class="rec"></i><b>Mah Meri</b> · SULAM proposal</span>
+  <span id="scene">Sc. 01 / 13 · Opening</span>
+</div>
+<div class="lbar bot">
+  <nav class="segs" id="segs" aria-label="Scenes"></nav>
+</div>
+
+</main>
+</div>
+
+<script>
+(function () {
+  var stage = document.getElementById('stage');
+  var slides = Array.prototype.slice.call(stage.querySelectorAll('.slide'));
+  var segsBox = document.getElementById('segs'), scene = document.getElementById('scene');
+  var stageMode = window.matchMedia('(min-width: 900px) and (min-height: 520px)');
+  var i = 0;
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+
+  // film grain tile, drawn once
+  try {
+    var c = document.createElement('canvas'); c.width = c.height = 220;
+    var g = c.getContext('2d'), d = g.createImageData(220, 220);
+    for (var p = 0; p < d.data.length; p += 4) { var v = Math.random() * 255; d.data[p] = d.data[p + 1] = d.data[p + 2] = v; d.data[p + 3] = 255; }
+    g.putImageData(d, 0, 0);
+    document.getElementById('grain').style.setProperty('--noise', 'url(' + c.toDataURL('image/png') + ')');
+  } catch (e) {}
+
+  var segs = slides.map(function (s, k) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'seg';
+    b.setAttribute('aria-label', 'Scene ' + (k + 1) + ': ' + s.getAttribute('data-name'));
+    b.addEventListener('click', function (e) { e.stopPropagation(); show(k); });
+    segsBox.appendChild(b);
+    return b;
+  });
+
+  var wipe = document.getElementById('wipe');
+  var calm = window.matchMedia('(prefers-reduced-motion: reduce)');
+  var runs = 0;
+  function countUp(root) {
+    var run = ++runs;
+    Array.prototype.forEach.call(root.querySelectorAll('[data-count]'), function (el) {
+      var to = parseFloat(el.getAttribute('data-count')), dec = parseInt(el.getAttribute('data-dec') || '0', 10);
+      var pre = el.getAttribute('data-pre') || '', suf = el.getAttribute('data-suf') || '';
+      function fmt(v) { return pre + v.toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec }) + suf; }
+      if (calm.matches || !stageMode.matches) { el.textContent = fmt(to); return; }
+      var t0 = performance.now() + 450, dur = 1500;
+      el.textContent = fmt(0);
+      (function tick(now) {
+        if (run !== runs) { el.textContent = fmt(to); return; }
+        var t = Math.max(0, Math.min(1, (now - t0) / dur)), e = t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
+        el.textContent = fmt(to * e);
+        if (t < 1) requestAnimationFrame(tick);
+      })(performance.now());
+    });
+  }
+  function show(n, fromHash) {
+    var from = i;
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    if (i !== from && stageMode.matches && !calm.matches) {
+      wipe.classList.remove('go', 'back'); void wipe.offsetWidth;
+      wipe.classList.add('go'); if (i < from) wipe.classList.add('back');
+    }
+    if (i !== from || fromHash) countUp(slides[i]);
+    slides.forEach(function (s, k) { s.classList.toggle('is-active', k === i); s.setAttribute('aria-hidden', k === i || !stageMode.matches ? 'false' : 'true'); });
+    segs.forEach(function (b, k) { b.classList.toggle('on', k === i); b.classList.toggle('done', k < i); b.setAttribute('aria-current', k === i ? 'step' : 'false'); });
+    scene.textContent = 'Sc. ' + pad(i + 1) + ' / ' + pad(slides.length) + ' · ' + slides[i].getAttribute('data-name');
+    if (!fromHash) { try { history.replaceState(null, '', '#s' + (i + 1)); } catch (e) {} }
+  }
+  function fromHash() {
+    var m = /^#s(\d+)$/.exec(location.hash);
+    show(m ? parseInt(m[1], 10) - 1 : 0, true);
+  }
+  function toggleFull() {
+    if (document.fullscreenElement) { document.exitFullscreen(); return; }
+    var el = document.documentElement;
+    if (el.requestFullscreen) { el.requestFullscreen().catch(function () {}); }
+  }
+
+  stage.addEventListener('click', function (e) {
+    if (!stageMode.matches || e.target.closest('.lbar')) return;
+    var r = stage.getBoundingClientRect();
+    show(i + ((e.clientX - r.left) < r.width * 0.3 ? -1 : 1));
+  });
+  document.addEventListener('keydown', function (e) {
+    if (!stageMode.matches || e.metaKey || e.ctrlKey || e.altKey) return;
+    var k = e.key;
+    if (k === 'ArrowRight' || k === 'PageDown' || k === ' ') { e.preventDefault(); show(i + 1); }
+    else if (k === 'ArrowLeft' || k === 'PageUp') { e.preventDefault(); show(i - 1); }
+    else if (k === 'Home') { show(0); }
+    else if (k === 'End') { show(slides.length - 1); }
+    else if (k === 'f' || k === 'F') { toggleFull(); }
+  });
+  var x0 = null;
+  stage.addEventListener('touchstart', function (e) { x0 = e.touches[0].clientX; }, { passive: true });
+  stage.addEventListener('touchend', function (e) {
+    if (x0 === null || !stageMode.matches) return;
+    var dx = e.changedTouches[0].clientX - x0; x0 = null;
+    if (Math.abs(dx) > 50) show(i + (dx < 0 ? 1 : -1));
+  }, { passive: true });
+  stageMode.addEventListener && stageMode.addEventListener('change', function () { show(i, true); });
+  var lap = stage.querySelector('.laptop');
+  stage.addEventListener('mousemove', function (e) {
+    if (!lap || calm.matches || !stageMode.matches || !slides[i].contains(lap)) return;
+    var r = stage.getBoundingClientRect();
+    var dx = (e.clientX - r.left) / r.width - 0.5, dy = (e.clientY - r.top) / r.height - 0.5;
+    lap.style.setProperty('--ry', (dx * 14).toFixed(2) + 'deg');
+    lap.style.setProperty('--rx', (-dy * 10).toFixed(2) + 'deg');
+  });
+  window.addEventListener('hashchange', fromHash);
+  fromHash();
+})();
+</script>
