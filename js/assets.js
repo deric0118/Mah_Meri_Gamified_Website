@@ -5,7 +5,9 @@
    ========================================================================= */
 (function () {
   const IMG = 'assets/images/';
+  const CUT = 'assets/cutscenes/';
   const p = (path) => encodeURI(IMG + path);
+  const c = (path) => encodeURI(CUT + path);
 
   const G1 = 'Game 1 Collect Material/';
   const G2 = 'Game 2 Weaving/';
@@ -16,6 +18,13 @@
     title: {
       video: p('mainpage_video.mp4'),
       photo: p('mainpage_pic.jpg')
+    },
+    cutscenes: {
+      opening: [
+        c('opening_1.mp4'),
+        c('opening_2.mp4'),
+        c('opening_3.mp4')
+      ]
     },
     map: {
       image: p('map_plain.jpg'),

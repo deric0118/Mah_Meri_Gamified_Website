@@ -25,14 +25,125 @@
       const tv = $('bg-video');
       if (tv && !tv.paused) tv.pause();
     }
+    if (id !== 'cutscene-screen') {
+      const cv = $('cutscene-video');
+      if (cv && !cv.paused) cv.pause();
+    }
     updateHud();
   }
 
   function updateHud() {
-    $('hud').classList.toggle('hidden', currentView === 'title-screen');
+    $('hud').classList.toggle('hidden', currentView === 'title-screen' || currentView === 'cutscene-screen');
     $('btn-map').classList.toggle('hidden', currentView !== 'game-stage-screen');
     const n = State.nextAct();
     $('quest-text').textContent = n ? CONTENT.quests[n] : CONTENT.quests.done;
+  }
+
+  /* ============================ Cutscenes ============================ */
+  function playCutscenes(sources, onDone) {
+    const list = Array.isArray(sources) ? sources.filter(Boolean) : [];
+    if (!list.length) {
+      if (onDone) onDone();
+      return;
+    }
+
+    const video = $('cutscene-video');
+    const skipBtn = $('btn-skip-cutscene');
+    if (!video) {
+      if (onDone) onDone();
+      return;
+    }
+
+    AudioFX.setAmbience(null);
+    showView('cutscene-screen');
+
+    let idx = 0;
+    let finished = false;
+
+    const cleanup = () => {
+      video.removeEventListener('playing', handlePlaying);
+      video.removeEventListener('timeupdate', handleTimeUpdate);
+      video.removeEventListener('ended', handleEnded);
+      video.removeEventListener('error', handleError);
+      if (skipBtn) skipBtn.onclick = null;
+    };
+
+    const finish = () => {
+      if (finished) return;
+      finished = true;
+      cleanup();
+      video.classList.remove('fade-in', 'fade-out');
+      video.pause();
+      video.removeAttribute('src');
+      video.load();
+      if (onDone) onDone();
+    };
+
+    const handlePlaying = () => {
+      if (finished) return;
+      requestAnimationFrame(() => {
+        video.classList.remove('fade-out');
+        video.classList.add('fade-in');
+      });
+    };
+
+    const handleTimeUpdate = () => {
+      if (finished || !video.duration || !isFinite(video.duration)) return;
+      if (video.duration - video.currentTime <= 0.85) {
+        video.classList.add('fade-out');
+      }
+    };
+
+    const playCurrent = () => {
+      if (finished) return;
+      if (idx >= list.length) {
+        finish();
+        return;
+      }
+      // Reset to transparent immediately before loading the next video so it fades in slowly
+      video.style.transition = 'none';
+      video.classList.remove('fade-in', 'fade-out');
+      void video.offsetWidth;
+      video.style.transition = '';
+
+      video.muted = !!State.data.muted;
+      video.src = list[idx];
+      video.load();
+      const p = video.play();
+      if (p && typeof p.catch === 'function') {
+        p.catch(() => {
+          if (finished) return;
+          video.muted = true;
+          const retry = video.play();
+          if (retry && typeof retry.catch === 'function') {
+            retry.catch(handleError);
+          }
+        });
+      }
+    };
+
+    const handleEnded = () => {
+      idx += 1;
+      playCurrent();
+    };
+
+    const handleError = () => {
+      idx += 1;
+      playCurrent();
+    };
+
+    video.addEventListener('playing', handlePlaying);
+    video.addEventListener('timeupdate', handleTimeUpdate);
+    video.addEventListener('ended', handleEnded);
+    video.addEventListener('error', handleError);
+    if (skipBtn) {
+      skipBtn.onclick = () => {
+        AudioFX.play('click');
+        finish();
+      };
+    }
+
+    playCurrent();
   }
 
   /* ============================ Title ============================ */
@@ -78,35 +189,34 @@
     startBtn.addEventListener('click', onStartPressed);
     $('btn-enter').addEventListener('click', onStartPressed);
     $('btn-continue').addEventListener('click', () => { AudioFX.play('click'); continueJourney(); });
-    $('btn-newgame').addEventListener('click', () => { AudioFX.play('click'); beginNewJourney(); });
+    $('btn-newgame').addEventListener('click', () => { AudioFX.play('click'); restartJourney(); });
   }
 
   function onStartPressed() {
     AudioFX.unlock();
     AudioFX.play('chime');
-    if (State.hasProgress()) {
-      $('btn-start-invisible').classList.add('hidden');
-      $('title-fallback').classList.add('hidden');
-      $('title-menu').classList.remove('hidden');
-      $('btn-continue').focus();
-    } else {
-      beginNewJourney();
-    }
+    beginNewJourney();
   }
 
   function beginNewJourney() {
     State.reset();
-    goMap();
-    Dialogue.start(CONTENT.dialogues.prologue, () => {
+    const openingVideos = (window.ASSETS && ASSETS.cutscenes && ASSETS.cutscenes.opening) || [];
+    playCutscenes(openingVideos, () => {
       State.data.seenPrologue = true;
       State.save();
-      updateHud();
-      UI.toast('Tap the glowing Mangrove Swamp marker to begin.');
+      goMap();
+      Dialogue.start(CONTENT.dialogues.prologue, () => {
+        updateHud();
+        UI.toast('Tap the glowing Mangrove Swamp marker to begin.');
+      });
     });
   }
 
   function continueJourney() {
-    goMap();
+    closeModal('pause-modal');
+    if (currentView === 'title-screen' || currentView === 'cutscene-screen') {
+      goMap();
+    }
     UI.toast(State.data.finished ? 'Welcome back! Your journey is complete.' : 'Welcome back, traveller. ' + CONTENT.quests[State.nextAct()] + '.');
   }
 
@@ -326,10 +436,15 @@
     $(id).classList.add('hidden');
   }
 
-  /* ============================ Reset ============================ */
-  function resetProgress() {
+  /* ============================ Pause / Reset ============================ */
+  function openPauseMenu() {
     AudioFX.play('click');
-    if (!window.confirm('Reset all progress and start a new journey?')) return;
+    showModal('pause-modal');
+    const contBtn = $('btn-continue');
+    if (contBtn) setTimeout(() => contBtn.focus(), 30);
+  }
+
+  function restartJourney() {
     Dialogue.cancel();
     $('result-overlay').classList.add('hidden');
     document.querySelectorAll('.modal').forEach((m) => m.classList.add('hidden'));
@@ -348,6 +463,8 @@
     State.data.muted = !State.data.muted;
     State.save();
     AudioFX.setMuted(State.data.muted);
+    const cv = $('cutscene-video');
+    if (cv) cv.muted = !!State.data.muted;
     renderAudioBtn();
     if (!State.data.muted) AudioFX.play('click');
   }
@@ -379,7 +496,7 @@
     $('btn-archive').addEventListener('click', openArchive);
     $('btn-support').addEventListener('click', openPortal);
     $('btn-audio-toggle').addEventListener('click', toggleAudio);
-    $('btn-reset').addEventListener('click', resetProgress);
+    $('btn-reset').addEventListener('click', openPauseMenu);
 
     document.querySelectorAll('[data-close]').forEach((b) =>
       b.addEventListener('click', () => { AudioFX.play('click'); closeModal(b.dataset.close); }));
@@ -395,6 +512,10 @@
       if (e.key === 'Escape') {
         const open = Array.from(document.querySelectorAll('.modal')).filter((m) => !m.classList.contains('hidden'));
         if (open.length) { closeModal(open[open.length - 1].id); return; }
+        if (currentView !== 'title-screen' && currentView !== 'cutscene-screen') {
+          openPauseMenu();
+          return;
+        }
       }
       if (Dialogue.isOpen() && (e.key === 'Enter' || e.key === ' ')) {
         e.preventDefault();
