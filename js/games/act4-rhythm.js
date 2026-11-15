@@ -25,7 +25,24 @@ window.Games[4] = (function () {
   function mount(host, o) {
     opts = o;
     timers = [];
-    root = UI.el('div', { class: 'stage act4', style: { backgroundImage: 'url("' + ASSETS.act4.bg + '")' } });
+    root = UI.el('div', { class: 'stage act4' });
+    const bgVideo = UI.el('video', {
+      class: 'stage-bg', autoplay: true, muted: true, loop: true, playsinline: true,
+      poster: ASSETS.act4.bg, src: ASSETS.act4.video
+    });
+    bgVideo.muted = true;
+    bgVideo.addEventListener('error', () => {
+      const alt = encodeURI('assets/images/Game 4 Rhythm Game/act4_background.mp4');
+      if (!bgVideo.dataset.retried) {
+        bgVideo.dataset.retried = '1';
+        bgVideo.src = alt;
+        bgVideo.load();
+      } else {
+        bgVideo.removeAttribute('src');
+        bgVideo.load();
+      }
+    });
+    root.appendChild(bgVideo);
     fireGlow = UI.el('div', { class: 'fire-glow' });
     root.appendChild(fireGlow);
     root.appendChild(UI.el('div', { class: 'lane-shade' }));
@@ -297,7 +314,11 @@ window.Games[4] = (function () {
     if (keyHandler) window.removeEventListener('keydown', keyHandler);
     if (visHandler) document.removeEventListener('visibilitychange', visHandler);
     keyHandler = null; visHandler = null;
-    if (root) root.remove();
+    if (root) {
+      const v = root.querySelector('video');
+      if (v) { v.pause(); v.removeAttribute('src'); v.load(); }
+      root.remove();
+    }
     root = null;
   }
 

@@ -24,7 +24,13 @@
         c('opening_1.mp4'),
         c('opening_2.mp4'),
         c('opening_3.mp4')
-      ]
+      ],
+      actEnd: {
+        1: [p(G1 + 'act1_end.mp4'), c('act1_end.mp4')],
+        2: [c('act2_end.mp4'), p(G2 + 'act2_end.mp4')],
+        3: [c('act3_end.mp4'), p(G3 + 'act3_end.mp4')],
+        4: [c('act4_end.mp4'), p(G4 + 'act4_end.mp4')]
+      }
     },
     map: {
       image: p('map_plain.jpg'),
@@ -70,6 +76,7 @@
     },
     act4: {
       bg: p(G4 + 'tarian_jooh.jpg'),
+      video: p('act4_background.mp4'),
       tuntung: [1, 2, 3].map((n) => p(G4 + 'tuntog_' + n + '.png'))
     }
   };

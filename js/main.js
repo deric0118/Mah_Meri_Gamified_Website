@@ -40,7 +40,7 @@
   }
 
   /* ============================ Cutscenes ============================ */
-  function playCutscenes(sources, onDone) {
+  function playCutscenes(sources, onDone, opts) {
     const list = Array.isArray(sources) ? sources.filter(Boolean) : [];
     if (!list.length) {
       if (onDone) onDone();
@@ -54,10 +54,12 @@
       return;
     }
 
+    const keepLastFrame = !!(opts && opts.keepLastFrame);
     AudioFX.setAmbience(null);
     showView('cutscene-screen');
 
     let idx = 0;
+    let altIdx = 0;
     let finished = false;
 
     const cleanup = () => {
@@ -72,12 +74,21 @@
       if (finished) return;
       finished = true;
       cleanup();
-      video.classList.remove('fade-in', 'fade-out');
-      video.pause();
-      video.removeAttribute('src');
-      video.load();
+      if (keepLastFrame) {
+        video.classList.remove('fade-out');
+        video.classList.add('fade-in');
+        video.pause();
+        if (skipBtn) skipBtn.classList.add('hidden');
+      } else {
+        video.classList.remove('fade-in', 'fade-out');
+        video.pause();
+        video.removeAttribute('src');
+        video.load();
+      }
       if (onDone) onDone();
     };
+
+    if (skipBtn) skipBtn.classList.remove('hidden');
 
     const handlePlaying = () => {
       if (finished) return;
@@ -89,7 +100,8 @@
 
     const handleTimeUpdate = () => {
       if (finished || !video.duration || !isFinite(video.duration)) return;
-      if (video.duration - video.currentTime <= 0.85) {
+      if (keepLastFrame && idx === list.length - 1) return;
+      if (video.duration - video.currentTime <= 1.6) {
         video.classList.add('fade-out');
       }
     };
@@ -106,29 +118,32 @@
       void video.offsetWidth;
       video.style.transition = '';
 
-      video.muted = !!State.data.muted;
-      video.src = list[idx];
+      // Always keep cutscenes muted (audio will be added separately later)
+      video.muted = true;
+      const entry = list[idx];
+      video.src = Array.isArray(entry) ? entry[altIdx] : entry;
       video.load();
       const p = video.play();
       if (p && typeof p.catch === 'function') {
-        p.catch(() => {
-          if (finished) return;
-          video.muted = true;
-          const retry = video.play();
-          if (retry && typeof retry.catch === 'function') {
-            retry.catch(handleError);
-          }
-        });
+        p.catch(handleError);
       }
     };
 
     const handleEnded = () => {
       idx += 1;
+      altIdx = 0;
       playCurrent();
     };
 
     const handleError = () => {
+      const entry = list[idx];
+      if (Array.isArray(entry) && altIdx + 1 < entry.length) {
+        altIdx += 1;
+        playCurrent();
+        return;
+      }
       idx += 1;
+      altIdx = 0;
       playCurrent();
     };
 
@@ -286,28 +301,49 @@
   function completeAct(n) {
     const firstTime = !State.isCompleted(n);
     State.completeAct(n);
-    AudioFX.play('victory');
     updateHud();
     const r = CONTENT.rewards[n];
-    UI.result({
-      kicker: CONTENT.actTitles[n],
-      title: r.title,
-      text: r.text,
-      images: r.images,
-      button: n === 4 ? 'Celebrate' : 'Return to Map',
-      onClose: () => {
-        goMap();
-        if (!firstTime && n !== 4) return;
-        const outro = n === 4 ? CONTENT.dialogues.ending : CONTENT.dialogues['act' + n + '_outro'];
-        Dialogue.start(outro, () => {
-          if (n === 4) {
-            openPortal();
+    const endCutscene = window.ASSETS && ASSETS.cutscenes && ASSETS.cutscenes.actEnd && ASSETS.cutscenes.actEnd[n];
+
+    const returnToMapAndOutro = () => {
+      goMap();
+      if (!firstTime && n !== 4) return;
+      const outro = n === 4 ? CONTENT.dialogues.ending : CONTENT.dialogues['act' + n + '_outro'];
+      Dialogue.start(outro, () => {
+        if (n === 4) {
+          openPortal();
+        } else {
+          UI.toast('New location unlocked: ' + CONTENT.actNames[n + 1]);
+        }
+      });
+    };
+
+    const showReward = () => {
+      AudioFX.play('victory');
+      UI.result({
+        kicker: CONTENT.actTitles[n],
+        title: r.title,
+        text: r.text,
+        images: r.images,
+        button: n === 4 ? 'Celebrate' : 'Return to Map',
+        onClose: () => {
+          // For Act IV (final game), play act4_end cutscene after clicking Celebrate, fade out slowly, then go back to the map
+          if (n === 4 && endCutscene) {
+            unmountGame();
+            playCutscenes([endCutscene], returnToMapAndOutro, { keepLastFrame: false });
           } else {
-            UI.toast('New location unlocked: ' + CONTENT.actNames[n + 1]);
+            returnToMapAndOutro();
           }
-        });
-      }
-    });
+        }
+      });
+    };
+
+    if (n !== 4 && endCutscene) {
+      unmountGame();
+      playCutscenes([endCutscene], showReward, { keepLastFrame: true });
+    } else {
+      showReward();
+    }
   }
 
   /* ============================ Museum ============================ */
@@ -463,8 +499,6 @@
     State.data.muted = !State.data.muted;
     State.save();
     AudioFX.setMuted(State.data.muted);
-    const cv = $('cutscene-video');
-    if (cv) cv.muted = !!State.data.muted;
     renderAudioBtn();
     if (!State.data.muted) AudioFX.play('click');
   }
