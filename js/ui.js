@@ -20,6 +20,18 @@
           else n.setAttribute(k, v === true ? '' : v);
         });
       }
+      if (tag === 'img' && attrs && attrs.src) {
+        let retries = 0;
+        n.addEventListener('error', function retryOnErr() {
+          if (retries < 4) {
+            retries++;
+            setTimeout(() => {
+              const base = attrs.src.split('?')[0];
+              n.src = base + '?retry=' + Date.now();
+            }, 750 * retries);
+          }
+        });
+      }
       (children || []).forEach((c) => {
         if (c == null) return;
         n.appendChild(typeof c === 'string' ? document.createTextNode(c) : c);

@@ -301,5 +301,36 @@ window.Games[4] = (function () {
     root = null;
   }
 
-  return { mount, unmount };
+  function simulatePlay() {
+    startPanel.classList.add('hidden');
+    running = true;
+    harmony = 64;
+    combo = 8;
+    comboEl.textContent = '8x Combo!';
+    comboEl.classList.add('hot');
+    updateHud(26);
+
+    const laneH = (lanes[0] && lanes[0].clientHeight) || 480;
+    const positions = [
+      { lane: 0, y: 0.32 },
+      { lane: 1, y: HIT_Y },
+      { lane: 2, y: 0.58 }
+    ];
+    positions.forEach((p) => {
+      const el = UI.el('div', { class: 'note' }, [UI.el('img', { src: ASSETS.act4.tuntung[p.lane], alt: '' })]);
+      el.style.transform = 'translate3d(-50%,' + (p.y * laneH) + 'px,0) translateY(-50%)';
+      laneNotes[p.lane].appendChild(el);
+    });
+
+    if (rings[1] && lanes[1]) {
+      rings[1].classList.add('hit');
+      lanes[1].classList.add('flash');
+      judge(1, 'Perfect!', 'gold');
+      const c = UI.centerIn(rings[1], root);
+      UI.float(root, c.x, c.y - 45, '+18 Harmony', 'teal small');
+      UI.burst(root, c.x, c.y, 8, 'ember');
+    }
+  }
+
+  return { mount, unmount, simulatePlay };
 })();

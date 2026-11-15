@@ -317,5 +317,37 @@ window.Games[3] = (function () {
     root = null;
   }
 
-  return { mount, unmount };
+  function simulatePlayCards() {
+    const cards = Array.from(root.querySelectorAll('.mem-card'));
+    const keyMap = {};
+    cards.forEach(c => {
+      const k = c.dataset.key;
+      if (!keyMap[k]) keyMap[k] = [];
+      keyMap[k].push(c);
+    });
+    const keys = Object.keys(keyMap);
+    if (keys.length >= 2) {
+      flip(keyMap[keys[0]][0]);
+      setTimeout(() => {
+        flip(keyMap[keys[0]][1]);
+        setTimeout(() => {
+          flip(keyMap[keys[1]][0]);
+        }, 450);
+      }, 200);
+    }
+  }
+
+  function simulateCarve() {
+    startChisel();
+    for (let y = 140; y < 530; y += 10) {
+      for (let x = 110; x < 265; x += 10) {
+        carveAt(x, y);
+      }
+    }
+    measure();
+    const c = UI.centerIn(wrap, root);
+    UI.burst(root, c.x, c.y, 14, 'chip');
+  }
+
+  return { mount, unmount, startChisel, simulatePlayCards, simulateCarve };
 })();

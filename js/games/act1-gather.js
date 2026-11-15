@@ -123,5 +123,18 @@ window.Games[1] = (function () {
     root = null;
   }
 
-  return { mount, unmount };
+  function simulatePlay() {
+    const items = Array.from(root.querySelectorAll('.hidden-item'));
+    if (items.length >= 3) {
+      collect(ITEMS[0], items[0]);
+      setTimeout(() => {
+        collect(ITEMS[1], items[1]);
+        setTimeout(() => {
+          collect(ITEMS[3], items[3]);
+        }, 250);
+      }, 250);
+    }
+  }
+
+  return { mount, unmount, simulatePlay };
 })();

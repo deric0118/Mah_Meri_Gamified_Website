@@ -358,10 +358,43 @@
     const s = new URLSearchParams(location.search).get('screen');
     if (!s) return false;
     const tv = $('bg-video'); if (tv) tv.pause();
+    if (s === 'title') { showView('title-screen'); return true; }
+    if (s === 'dialogue') { goMap(); Dialogue.start(CONTENT.dialogues.prologue); return true; }
     if (s === 'map') { goMap(); return true; }
+    if (s === 'act1_play') {
+      launchMiniGame(1);
+      setTimeout(() => { if (window.Games && window.Games[1] && window.Games[1].simulatePlay) window.Games[1].simulatePlay(); }, 250);
+      return true;
+    }
+    if (s === 'act2_play') {
+      launchMiniGame(2);
+      setTimeout(() => { if (window.Games && window.Games[2] && window.Games[2].simulatePlay) window.Games[2].simulatePlay(); }, 250);
+      return true;
+    }
+    if (s === 'act3_cards_play') {
+      launchMiniGame(3);
+      setTimeout(() => { if (window.Games && window.Games[3] && window.Games[3].simulatePlayCards) window.Games[3].simulatePlayCards(); }, 250);
+      return true;
+    }
+    if (s === 'act3_chisel_play') {
+      launchMiniGame(3);
+      setTimeout(() => { if (window.Games && window.Games[3] && window.Games[3].simulateCarve) window.Games[3].simulateCarve(); }, 250);
+      return true;
+    }
+    if (s === 'act4_rhythm_play') {
+      launchMiniGame(4);
+      setTimeout(() => { if (window.Games && window.Games[4] && window.Games[4].simulatePlay) window.Games[4].simulatePlay(); }, 250);
+      return true;
+    }
+    if (s === 'act3_chisel') {
+      launchMiniGame(3);
+      if (window.Games && window.Games[3] && window.Games[3].startChisel) window.Games[3].startChisel();
+      return true;
+    }
     const m = /^act([1-4])$/.exec(s);
     if (m) { launchMiniGame(Number(m[1])); return true; }
     if (s === 'museum') { goMap(); openArchive(); return true; }
+    if (s === 'museum_myths') { goMap(); openArchive(); switchMuseumTab('myths'); return true; }
     if (s === 'portal') { goMap(); openPortal(); return true; }
     return false;
   }
