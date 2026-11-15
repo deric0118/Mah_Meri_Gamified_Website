@@ -335,7 +335,7 @@ h2 em{font-size:1.1em; line-height:.8}
 }
 
 /* ---------- stacked mode: small windows and phones ---------- */
-@media (max-width: 899px), (max-height: 519px){
+@media screen and (max-width: 899px), screen and (max-height: 519px){
   html,body{height:auto}
   body{display:block}
   .viewport{container-type:normal; display:block; padding-block:16px}
@@ -413,6 +413,17 @@ h2 em{font-size:1.1em; line-height:.8}
   .qmark{font-size:16rem; bottom:-4rem}
   .contact{padding:4px 16px}
   .contact div{padding:10px 0}
+}
+/* ---------- print / save as PDF: one 16:9 slide per page ---------- */
+@page{size:1280px 720px; margin:0}
+@media print{
+  html,body{height:auto; padding:0; margin:0; display:block; background:var(--bg); -webkit-print-color-adjust:exact; print-color-adjust:exact}
+  *,*::before,*::after{animation:none !important; transition:none !important}
+  .viewport{display:block; padding:0; container-type:normal}
+  .stage{width:1280px; height:auto; aspect-ratio:auto; overflow:visible; border-radius:0; container-type:inline-size; cursor:auto}
+  .slide{position:relative; inset:auto; width:1280px; height:720px; container-type:size; opacity:1; visibility:visible; break-after:page; page-break-after:always; break-inside:avoid}
+  .slide:last-of-type{break-after:auto; page-break-after:auto}
+  .lbar,.wipe,.grain{display:none !important}
 }
 </style>
 
@@ -781,6 +792,14 @@ h2 em{font-size:1.1em; line-height:.8}
       })(performance.now());
     });
   }
+  // printing / saving as PDF: stop count-ups and show final numbers
+  window.addEventListener('beforeprint', function () {
+    runs++;
+    Array.prototype.forEach.call(document.querySelectorAll('[data-count]'), function (el) {
+      var to = parseFloat(el.getAttribute('data-count')), dec = parseInt(el.getAttribute('data-dec') || '0', 10);
+      el.textContent = (el.getAttribute('data-pre') || '') + to.toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec }) + (el.getAttribute('data-suf') || '');
+    });
+  });
   function show(n, fromHash) {
     var from = i;
     i = Math.max(0, Math.min(slides.length - 1, n));
