@@ -3,12 +3,14 @@
 # 🎭 Spirit of the Mangroves
 ### *A Gamified Cultural Preservation Journey with the Mah Meri People*
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
-[![Vanilla JS](https://img.shields.io/badge/Vanilla-JavaScript-F7DF1E?style=flat-square&logo=javascript&logoColor=black)]()
-[![HTML5 Canvas](https://img.shields.io/badge/HTML5-Canvas-E34F26?style=flat-square&logo=html5&logoColor=white)]()
-[![Web Audio API](https://img.shields.io/badge/Web_Audio-Synthesizer-9cf?style=flat-square)]()
-[![Zero Dependencies](https://img.shields.io/badge/Dependencies-0-success?style=flat-square)]()
-[![Universiti Malaya SULAM](https://img.shields.io/badge/Universiti_Malaya-WIX2001_SULAM-003366?style=flat-square)]()
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square" alt="License: MIT" /></a>
+  <img src="https://img.shields.io/badge/Vanilla-JavaScript-F7DF1E?style=flat-square&logo=javascript&logoColor=black" alt="Vanilla JS" />
+  <img src="https://img.shields.io/badge/HTML5-Canvas-E34F26?style=flat-square&logo=html5&logoColor=white" alt="HTML5 Canvas" />
+  <img src="https://img.shields.io/badge/Web_Audio-Synthesizer-9cf?style=flat-square" alt="Web Audio API" />
+  <img src="https://img.shields.io/badge/Dependencies-0-success?style=flat-square" alt="Zero Dependencies" />
+  <img src="https://img.shields.io/badge/Universiti_Malaya-WIX2001_SULAM-003366?style=flat-square" alt="Universiti Malaya SULAM" />
+</p>
 
 <p align="center">
   <b>An interactive, single-page web adventure exploring the ancestral heritage, woodcraft, and folklore of the indigenous Mah Meri community of Pulau Carey, Malaysia.</b>
@@ -16,17 +18,17 @@
 
 <p align="center">
   <a href="#-overview">Overview</a> •
-  <a href="#-gameplay-acts">The 4 Acts</a> •
-  <a href="#-visual-showcase">Visual Tour</a> •
+  <a href="#-the-four-acts">The 4 Acts</a> •
+  <a href="#-visual-tour">Visual Tour</a> •
   <a href="#-technical-highlights">Tech Stack</a> •
   <a href="#-quick-start">Quick Start</a> •
-  <a href="#-controls">Controls</a> •
+  <a href="#-controls--navigation">Controls</a> •
   <a href="#-community--sulam-collaboration">Community Partner</a>
 </p>
 
 <br>
 
-<img src="screenshots/02_island_map.png" alt="Illustrated Map of Pulau Carey" width="100%" style="border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.5);" />
+<img src="screenshots/02_island_map.png" alt="Illustrated Map of Pulau Carey" width="100%" />
 
 </div>
 
@@ -149,6 +151,9 @@ In this journey, players are guided by **Moyang Tok Naning**, an ancestral spiri
 No installation required. Run directly from your terminal:
 
 ```bash
+# Python (Windows: py, macOS/Linux: python3)
+py -m http.server 8000
+# or Node
 # Windows
 python -m http.server 8000
 
@@ -162,13 +167,20 @@ Then navigate to **`http://localhost:8000`** in any modern web browser.
 npx serve .
 ```
 
+Then open http://localhost:8000.
 > [!NOTE]
 > Running through a local HTTP server is recommended rather than opening `index.html` via `file://`, as the Act III wood carving engine inspects canvas pixel alpha buffers for progress milestones.
 
+Opening `index.html` directly also works. Serving it over http is recommended, because the Act III carving progress uses canvas pixel data.
 ---
 
+### Testing shortcuts
+- `?screen=map`, `?screen=act1` … `?screen=act4`, `?screen=museum`, `?screen=portal` jump straight to a screen.
+- The ⟲ button in the top bar resets progress.
+- `App.launchMiniGame(3)` in the browser console opens an act.
 ## 🕹️ Controls & Navigation
 
+## Project structure
 | Screen / Act | Keyboard Shortcut | Mouse / Touch Gesture |
 | :--- | :--- | :--- |
 | **All Screens** | `Escape` to close modals | Click UI buttons / HUD controls |
@@ -219,9 +231,29 @@ Mah_Meri_Gamified_Website/
 ├── index.html                  # Main application shell
 └── README.md                   # Project documentation
 ```
+index.html                 page shell: title, map, game stage, dialogue, museum, portal
+css/styles.css             all styling (earthy palette + teal/gold spirit UI)
+js/assets.js               every image/video path (keep exact .PNG/.png case for Linux hosting)
+js/content.js              all text: dialogue, folklore, card notes, museum entries, portal links
+js/state.js                progress + localStorage save
+js/audio.js                Web Audio synth SFX/ambience (map real mp3s via AudioFX.files)
+js/ui.js                   shared helpers (toast, floating text, particles, result panel)
+js/dialogue.js             Moyang typewriter dialogue
+js/games/act1-gather.js    Act I
+js/games/act2-weave.js     Act II
+js/games/act3-carve.js     Act III
+js/games/act4-rhythm.js    Act IV
+js/main.js                 router, map, HUD, act flow, museum, portal
+```
 
+Each mini-game exposes `window.Games[n] = { mount(container, { onComplete }), unmount() }`.
 ---
 
+## Content TODO (Member 3)
+- Verify the cultural accuracy of the lines marked "verify" in `js/content.js`.
+- Replace the search/maps links in the portal with official artisan, tour and NGO links.
+- Add photos of real Mah Meri artisans to the Spirit Archive.
+- Optional: drop recorded audio into `assets/audio/` and map it in `AudioFX.files`.
 ## 🤝 Community & SULAM Collaboration
 
 - **Institution:** Universiti Malaya (Faculty of Computer Science & Information Technology)
