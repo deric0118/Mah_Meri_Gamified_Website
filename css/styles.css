@@ -121,30 +121,36 @@ kbd {
 /* ------------------------------ Title ------------------------------ */
 #title-screen { display: flex; align-items: center; justify-content: center; text-align: center; background: #000; }
 
+/* 16:9 box that covers the viewport so #btn-start-invisible stays locked onto the PLAY graphic */
+.title-cover {
+  position: absolute; left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  width: max(100vw, calc(100vh * 16 / 9));
+  height: max(100vh, calc(100vw * 9 / 16));
+}
+
 #bg-video {
   position: absolute; inset: 0;
   width: 100%; height: 100%;
   object-fit: cover;
-  object-position: center top;
+  object-position: center center;
   z-index: 0;
-  filter: url(#video-sharpen) contrast(1.04) saturate(1.05);
+  transform: translateZ(0);
 }
 
-/* Invisible button centred over the video's PLAY graphic */
+/* Invisible button centred directly over the video's wooden PLAY plaque */
 #btn-start-invisible {
   position: absolute;
-  top: 52%; left: 50%;
+  top: 52.5%; left: 50%;
   transform: translate(-50%, -50%);
-  width: 30%; min-width: 200px;
-  height: 15%; min-height: 80px;
+  width: 29%;
+  height: 17%;
   background: transparent;
   border: none;
   border-radius: 20px;
   cursor: pointer;
   z-index: 10;
-  transition: transform 0.2s ease;
 }
-#btn-start-invisible:hover { transform: translate(-50%, -50%) scale(1.05); }
 
 #btn-skip-intro, #btn-skip-cutscene { position: absolute; right: 20px; bottom: 20px; z-index: 11; font-size: 0.85rem; opacity: 0.8; }
 
@@ -157,7 +163,7 @@ kbd {
   transition: opacity 1.2s ease-in-out;
 }
 
-#cutscene-video {
+#cutscene-video, #cutscene-canvas {
   position: absolute;
   inset: 0;
   width: 100vw;
@@ -168,14 +174,19 @@ kbd {
   z-index: 0;
   opacity: 0;
   transition: opacity 1.8s ease-in-out;
-  filter: url(#video-sharpen) contrast(1.04) saturate(1.05);
+  transform: translateZ(0);
 }
 
-#cutscene-video.fade-in {
+#cutscene-canvas {
+  z-index: 1;
+  pointer-events: none;
+}
+
+#cutscene-video.fade-in, #cutscene-canvas.fade-in {
   opacity: 1;
 }
 
-#cutscene-video.fade-out {
+#cutscene-video.fade-out, #cutscene-canvas.fade-out {
   opacity: 0;
   transition: opacity 1.6s ease-in-out;
 }
@@ -343,7 +354,7 @@ kbd {
   user-select: none;
   -webkit-user-select: none;
 }
-.stage-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; filter: url(#video-sharpen) contrast(1.04) saturate(1.05); }
+.stage-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; transform: translateZ(0); }
 .stage-vignette { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at center, transparent 50%, rgba(0, 0, 0, 0.55) 100%); }
 .stage-vignette.warm { background: radial-gradient(ellipse at center, rgba(40, 20, 5, 0.15) 30%, rgba(0, 0, 0, 0.6) 100%); }
 

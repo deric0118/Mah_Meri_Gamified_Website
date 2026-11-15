@@ -27,12 +27,14 @@
 
   <!-- ===================== 1. Title screen ===================== -->
   <section id="title-screen" class="view shown">
-    <!-- Plays once; the PLAY graphic at the end of the video is covered by the invisible start button -->
-    <video autoplay muted playsinline preload="auto" id="bg-video" poster="assets/images/mainpage_pic.jpg">
-      <source id="bg-video-src" src="assets/images/mainpage_video.mp4" type="video/mp4">
-    </video>
+    <!-- 16:9 cover box so the invisible PLAY button always aligns with the video graphic -->
+    <div class="title-cover">
+      <video autoplay muted playsinline preload="auto" id="bg-video" poster="assets/images/mainpage_pic.jpg">
+        <source id="bg-video-src" src="assets/images/mainpage_video.mp4" type="video/mp4">
+      </video>
+      <button id="btn-start-invisible" class="hidden" aria-label="Start game"></button>
+    </div>
 
-    <button id="btn-start-invisible" class="hidden" aria-label="Start game"></button>
     <button id="btn-skip-intro" class="btn-ghost hidden">Skip intro ▸</button>
 
     <!-- Fallback when the video cannot play (autoplay blocked / file missing) -->
@@ -46,6 +48,7 @@
   <!-- ===================== 1b. Cutscene screen ===================== -->
   <section id="cutscene-screen" class="view hidden">
     <video id="cutscene-video" muted playsinline preload="auto"></video>
+    <canvas id="cutscene-canvas" aria-hidden="true"></canvas>
     <button id="btn-skip-cutscene" class="btn-ghost">Skip ▸</button>
   </section>
 
@@ -164,15 +167,6 @@
 
   <!-- Toast notifications -->
   <div id="toast" role="status" aria-live="polite"></div>
-
-  <!-- GPU unsharp-mask filter to enhance video clarity and edge sharpness -->
-  <svg width="0" height="0" style="position:absolute;pointer-events:none" aria-hidden="true">
-    <defs>
-      <filter id="video-sharpen" color-interpolation-filters="sRGB">
-        <feConvolveMatrix order="3" kernelMatrix="0 -0.35 0 -0.35 2.4 -0.35 0 -0.35 0" preserveAlpha="true" />
-      </filter>
-    </defs>
-  </svg>
 
   <!-- Scripts (classic scripts, load order matters) -->
   <script src="js/assets.js"></script>
