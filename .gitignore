@@ -5,6 +5,7 @@ Thumbs.db
 # Editor Directories
 .vscode/
 .idea/
+.claude/
 
 # Dependencies & Build Files (Tailwind / Node)
 node_modules/
