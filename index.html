@@ -4,9 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="description" content="Spirit of the Mangroves: a gamified journey through the heritage, crafts and folklore of the Mah Meri people of Pulau Carey, Malaysia.">
+  <meta name="theme-color" content="#110e0a">
+  <!-- Opened from the home screen, phones run it without browser bars (the only full screen option on iPhone) -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Mah Meri">
   <title>Spirit of the Mangroves - A Mah Meri Cultural Journey</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8D%83%3C/text%3E%3C/svg%3E">
-  <link rel="stylesheet" href="css/styles.css?v=14">
+  <link rel="stylesheet" href="css/styles.css?v=15">
 </head>
 <body>
 
@@ -21,6 +27,12 @@
       <button id="btn-archive" class="hud-btn" title="Open the Spirit Archive museum"><span aria-hidden="true">🏺</span><span class="hud-label">Museum</span></button>
       <button id="btn-support" class="hud-btn" title="Support the Mah Meri artisans"><span aria-hidden="true">🤝</span><span class="hud-label">Support</span></button>
       <button id="btn-audio-toggle" class="hud-btn" title="Toggle sound"><span id="audio-icon" aria-hidden="true">🔊</span><span class="hud-label" id="audio-label">Sound</span></button>
+      <button id="btn-fullscreen" class="hud-btn hidden" title="Full screen" aria-label="Full screen">
+        <svg class="fs-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path class="fs-enter" d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/>
+          <path class="fs-exit" d="M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5"/>
+        </svg><span class="hud-label">Full screen</span>
+      </button>
       <button id="btn-reset" class="hud-btn hud-btn-small" title="Pause / Journey menu"><span aria-hidden="true">⏸</span></button>
     </nav>
   </header>
@@ -84,13 +96,11 @@
         <span class="pin-label">Ceremonial Fire</span>
       </button>
     </div>
-    <div class="rotate-hint">↻ Turn your phone sideways for the best view</div>
   </section>
 
   <!-- ===================== 3. Mini-game stage (games mount here) ===================== -->
   <section id="game-stage-screen" class="view hidden">
     <div class="game-container" id="game-container-inner"></div>
-    <div class="rotate-hint">↻ Turn your phone sideways to play</div>
   </section>
 
   <!-- ===================== Moyang dialogue overlay ===================== -->
@@ -166,20 +176,36 @@
     </div>
   </div>
 
+  <!-- ===================== Rotate-your-phone notice (portrait touch screens; shown by CSS) ===================== -->
+  <div id="rotate-overlay" role="dialog" aria-modal="true" aria-labelledby="rotate-title" aria-describedby="rotate-text">
+    <div class="rotate-visual" aria-hidden="true">
+      <svg class="rotate-arrows" viewBox="0 0 160 160">
+        <path d="M97 16A66 66 0 0 1 144 63M135 55L144 63L148 52"/>
+        <path d="M63 144A66 66 0 0 1 16 97M25 105L16 97L12 108"/>
+      </svg>
+      <div class="rotate-phone"><span class="rotate-phone-screen"></span></div>
+    </div>
+    <h2 id="rotate-title">Rotate your phone</h2>
+    <p id="rotate-text">This journey is played sideways. Turn your phone to landscape to continue.</p>
+    <button id="btn-rotate-fullscreen" class="btn-wood hidden">Play in full screen</button>
+    <p id="rotate-tip" class="rotate-tip hidden">For full screen on iPhone, tap Share, then Add to Home Screen.</p>
+  </div>
+
   <!-- Toast notifications -->
   <div id="toast" role="status" aria-live="polite"></div>
 
   <!-- Scripts (classic scripts, load order matters) -->
-  <script src="js/assets.js?v=14"></script>
-  <script src="js/content.js?v=14"></script>
-  <script src="js/state.js?v=14"></script>
-  <script src="js/audio.js?v=14"></script>
-  <script src="js/ui.js?v=14"></script>
-  <script src="js/dialogue.js?v=14"></script>
-  <script src="js/games/act1-gather.js?v=14"></script>
-  <script src="js/games/act2-weave.js?v=14"></script>
-  <script src="js/games/act3-carve.js?v=14"></script>
-  <script src="js/games/act4-rhythm.js?v=14"></script>
-  <script src="js/main.js?v=14"></script>
+  <script src="js/assets.js?v=15"></script>
+  <script src="js/content.js?v=15"></script>
+  <script src="js/state.js?v=15"></script>
+  <script src="js/audio.js?v=15"></script>
+  <script src="js/ui.js?v=15"></script>
+  <script src="js/display.js?v=15"></script>
+  <script src="js/dialogue.js?v=15"></script>
+  <script src="js/games/act1-gather.js?v=15"></script>
+  <script src="js/games/act2-weave.js?v=15"></script>
+  <script src="js/games/act3-carve.js?v=15"></script>
+  <script src="js/games/act4-rhythm.js?v=15"></script>
+  <script src="js/main.js?v=15"></script>
 </body>
 </html>

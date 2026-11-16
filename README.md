@@ -220,6 +220,7 @@ Mah_Meri_Gamified_Website/
 │   ├── audio.js                # Web Audio synthesizer & sound manager
 │   ├── content.js              # Cultural lore, dialogue, cards, and trivia
 │   ├── dialogue.js             # Typewriter spirit dialogue engine
+│   ├── display.js              # Phone full screen + rotate-your-phone notice
 │   ├── main.js                 # View router, HUD, and QA shortcuts
 │   ├── state.js                # LocalStorage progress save system
 │   ├── ui.js                   # Particles, floating text, and auto-retry helpers
@@ -239,6 +240,7 @@ js/state.js                progress + localStorage save
 js/audio.js                Web Audio synth SFX/ambience (map real mp3s via AudioFX.files)
 js/ui.js                   shared helpers (toast, floating text, particles, result panel)
 js/dialogue.js             Moyang typewriter dialogue
+js/display.js              phone full screen (landscape) + rotate notice (portrait)
 js/games/act1-gather.js    Act I
 js/games/act2-weave.js     Act II
 js/games/act3-carve.js     Act III
