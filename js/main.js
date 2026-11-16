@@ -24,6 +24,9 @@
     if (id !== 'title-screen') {
       const tv = $('bg-video');
       if (tv && !tv.paused) tv.pause();
+      AudioFX.stopMusic();
+    } else {
+      AudioFX.startMusic('title');
     }
     if (id !== 'cutscene-screen') {
       const cv = $('cutscene-video');
@@ -394,6 +397,9 @@
     const startBtn = $('btn-start-invisible');
     const skipBtn = $('btn-skip-intro');
     let revealed = false;
+    // Title theme: plays right away if the browser allows sound, otherwise from the
+    // first click / tap / key press (browser autoplay rule; see AudioFX.startMusic).
+    AudioFX.startMusic('title');
 
     const reveal = () => {
       if (revealed) return;
@@ -516,9 +522,8 @@
   }
 
   /* ============================ Acts ============================ */
-  // Acts whose intro dialogue plays inside the game scene (script: NPC Swamp / Hut / Carver).
-  // Act IV's intro stays on the map, before the dance begins (script: NPC Map).
-  const SCENE_INTRO_ACTS = [1, 2, 3];
+  // Acts whose intro dialogue plays inside the game scene (Swamp / Hut / Carver / Ceremonial Fire).
+  const SCENE_INTRO_ACTS = [1, 2, 3, 4];
 
   function launchMiniGame(n, intro) {
     const game = window.Games && window.Games[n];
@@ -825,8 +830,15 @@
     document.querySelectorAll('.museum-tabs .tab').forEach((b) =>
       b.addEventListener('click', () => switchMuseumTab(b.dataset.tab)));
 
-    // Any first interaction unlocks audio (browser autoplay rules)
-    window.addEventListener('pointerdown', () => AudioFX.unlock(), { once: true });
+    // The first interaction unlocks audio (browser autoplay rules). Touch screens only grant
+    // permission on pointerup/touchend (not pointerdown), so keep listening to all of these
+    // until sound is actually running, then stop.
+    const unlockEvents = ['pointerdown', 'pointerup', 'touchend', 'click', 'keydown'];
+    const unlockAudio = () => {
+      AudioFX.unlock();
+      if (AudioFX.ready()) unlockEvents.forEach((ev) => window.removeEventListener(ev, unlockAudio, true));
+    };
+    unlockEvents.forEach((ev) => window.addEventListener(ev, unlockAudio, true));
 
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {

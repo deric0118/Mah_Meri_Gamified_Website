@@ -86,8 +86,8 @@
     },
 
     /* ------------------------------ Dialogue ------------------------------ */
-    // act1..act3 play inside the game scene when the act opens; act4 plays on
-    // the map before the dance starts (see SCENE_INTRO_ACTS in main.js).
+    // act1..act4 play inside the game scene when the act opens
+    // (see SCENE_INTRO_ACTS in main.js).
     dialogues: {
       prologue: [
         m('Welcome, my child, to Pulau Carey. I am Moyang Tok Naning, a spirit of the ancestors. They have grown quiet… The People of the Forest.', 
