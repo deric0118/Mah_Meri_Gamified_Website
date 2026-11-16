@@ -150,7 +150,7 @@
         m('Now that we\'ve done the carving.',
           'speak', 'assets/audio/act3/act3_outro1.mp3'),
         m('My child, you are more than ready. It\'s time to join our people at the Ceremonial Fire for the Tarian Jo\'oh.', 
-          'stand', 'assets/audio/act3/act3_outro.mp3')
+          'stand', 'assets/audio/act3/act3_outro2.mp3')
       ],
 
       act4: [
@@ -163,10 +163,10 @@
 
       ending: [
         m('Everything you gathered, wove and carved now rests in the Spirit Archive. Open the Museum to learn the real history behind each piece.',
-          'speak', 'assets/audio/ending/ending_1.mp3'
+          'speak', 'assets/audio/ending/ending1.mp3'
         ),
         m('Remember: our heritage is living, not only virtual. Visit the Mah Meri on Pulau Carey and support the artisans who keep these crafts alive.', 
-          'stand', 'assets/audio/ending/ending_2.mp3')
+          'stand', 'assets/audio/ending/ending2.mp3')
       ]
     },
 

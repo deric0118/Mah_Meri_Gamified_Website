@@ -583,7 +583,7 @@
           // For Act IV (final game), play act4_end cutscene after clicking Celebrate, fade out slowly, then go back to the map
           if (n === 4 && endCutscene) {
             unmountGame();
-            playCutscenes([endCutscene], returnToMapAndOutro, { keepLastFrame: false, subtitles: [endSubs] });
+            playCutscenes([endCutscene], returnToMapAndOutro, { keepLastFrame: false, subtitles: [endSubs], audio: actEndAudio[n] });
           } else {
             returnToMapAndOutro();
           }
