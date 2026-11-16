@@ -379,6 +379,14 @@ kbd {
   white-space: nowrap;
 }
 .pin-glow { position: absolute; z-index: 1; inset: -8px; border-radius: 50%; pointer-events: none; }
+/* The Ceremonial Fire pin sits between the Weaver's Hut (up-right) and the Carver's Bench
+   (down-left). Labels under those pins ran into it, so these two labels go to the right. */
+#pin-act2 .pin-label, #pin-act4 .pin-label {
+  top: 50%; left: 100%;
+  transform: translateY(-50%);
+  margin: 0 0 0 8px;
+}
+.map-pin.active { z-index: 11; } /* the current goal is never hidden under a neighbour */
 
 .map-pin.active .pin-glow { border: 4px solid var(--teal); animation: pulse 1.5s infinite; }
 .map-pin.active .pin-marker { border-color: var(--teal); box-shadow: 0 0 22px rgba(77, 243, 229, 0.65); }
@@ -875,6 +883,7 @@ body.dialogue-open .act4 .rhythm-panel { opacity: 0; visibility: hidden; pointer
   animation: fadeIn 0.25s ease;
 }
 .modal-content {
+  --pad-y: 24px; --pad-x: 26px;
   position: relative;
   width: min(100%, 520px);
   max-height: 100%;
@@ -882,7 +891,7 @@ body.dialogue-open .act4 .rhythm-panel { opacity: 0; visibility: hidden; pointer
   background: linear-gradient(180deg, #21170e, #140e08);
   border: 3px solid var(--gold);
   border-radius: 14px;
-  padding: 24px 26px;
+  padding: var(--pad-y) var(--pad-x);
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.9);
 }
 .modal-wide { width: min(100%, 980px); }
@@ -897,9 +906,20 @@ body.dialogue-open .act4 .rhythm-panel { opacity: 0; visibility: hidden; pointer
   color: var(--text);
   font-size: 1.1rem;
   cursor: pointer;
+  z-index: 2;
 }
 .modal-close:hover { background: var(--wood-mid); }
 .modal-scroll-inner { overflow-y: auto; min-height: 0; padding-right: 4px; }
+/* Whole-panel scroller: spans the panel edge to edge so a full-bleed hero can scroll with it,
+   while the close button (outside it) stays put. */
+.modal-scroll {
+  flex: 1 1 auto; min-height: 0;
+  margin: calc(-1 * var(--pad-y)) calc(-1 * var(--pad-x));
+  padding: var(--pad-y) var(--pad-x);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-radius: 11px;
+}
 
 /* Museum */
 .museum-tabs { display: flex; gap: 8px; margin-bottom: 14px; }
@@ -948,8 +968,8 @@ body.dialogue-open .act4 .rhythm-panel { opacity: 0; visibility: hidden; pointer
 
 /* Portal */
 .portal-hero {
-  margin: -24px -26px 14px;
-  padding: 44px 26px 22px;
+  margin: calc(-1 * var(--pad-y)) calc(-1 * var(--pad-x)) 14px;
+  padding: 44px var(--pad-x) 22px;
   border-radius: 11px 11px 0 0;
   background: linear-gradient(180deg, rgba(10, 8, 5, 0.35), rgba(20, 14, 8, 0.96)), url('../assets/images/Game%204%20Rhythm%20Game/tarian_jooh.jpg') center 40% / cover;
 }
@@ -960,7 +980,7 @@ body.dialogue-open .act4 .rhythm-panel { opacity: 0; visibility: hidden; pointer
   font-size: 0.88rem; opacity: 0.85;
 }
 .portal-badge.earned { border-style: solid; border-color: var(--gold-bright); background: rgba(230, 196, 106, 0.15); color: var(--gold-bright); opacity: 1; }
-.community-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; overflow-y: auto; }
+.community-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
 .cta-card {
   display: flex; flex-direction: column; gap: 8px; align-items: flex-start;
   background: rgba(60, 40, 22, 0.55);
@@ -1075,8 +1095,8 @@ body.dialogue-open .act4 .rhythm-panel { opacity: 0; visibility: hidden; pointer
   .pin-marker { width: 48px; height: 48px; font-size: 1.4rem; }
   .pin-label { font-size: 0.72rem; }
   .museum-detail-body { grid-template-columns: 1fr; }
-  .modal-content { padding: 18px; }
-  .portal-hero { margin: -18px -18px 12px; padding: 40px 18px 18px; }
+  .modal-content { --pad-y: 18px; --pad-x: 18px; }
+  .portal-hero { padding-top: 40px; padding-bottom: 18px; margin-bottom: 12px; }
 }
 
 @media (max-height: 520px) {
@@ -1094,7 +1114,20 @@ body.dialogue-open .act4 .rhythm-panel { opacity: 0; visibility: hidden; pointer
   .dialogue-text { font-size: 0.88rem; min-height: 2.6em; }
   .dialog-avatar { width: 90px; }
   .dialogue-box { padding-left: 96px; }
-  .modal { padding-top: 56px; }
+  /* Landscape phones: give panels the full height (the backdrop already covers the HUD) */
+  .modal {
+    padding-top: max(10px, env(safe-area-inset-top));
+    padding-bottom: max(10px, env(safe-area-inset-bottom));
+  }
+  .modal-content { --pad-y: 14px; --pad-x: 18px; }
+  .modal-content h2 { font-size: 1.3rem; }
+  .modal-close { top: 8px; right: 10px; width: 30px; height: 30px; font-size: 1rem; }
+  .portal-hero { padding-top: 16px; padding-bottom: 12px; margin-bottom: 10px; }
+  .portal-hero p { font-size: 0.9rem; }
+  .portal-badge { font-size: 0.8rem; margin-bottom: 10px; }
+  /* The map shrinks with the screen height, so the pins must too or they pile onto each other */
+  .pin-marker { width: 46px; height: 46px; font-size: 1.35rem; border-width: 2.5px; }
+  .pin-label { font-size: 0.72rem; padding: 3px 8px; margin-top: 5px; }
 }
 
 /* Tall windows (e.g. a narrow desktop window): show the whole map instead of cropping it.

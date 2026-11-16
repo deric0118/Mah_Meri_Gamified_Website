@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-title" content="Mah Meri">
   <title>Spirit of the Mangroves - A Mah Meri Cultural Journey</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8D%83%3C/text%3E%3C/svg%3E">
-  <link rel="stylesheet" href="css/styles.css?v=15">
+  <link rel="stylesheet" href="css/styles.css?v=16">
 </head>
 <body>
 
@@ -153,13 +153,16 @@
   <div id="portal-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="portal-title">
     <div class="modal-content modal-wide">
       <button class="modal-close" data-close="portal-modal" aria-label="Close">✕</button>
-      <div class="portal-hero">
-        <h2 id="portal-title">Support the Mah Meri Artisans</h2>
-        <p>The heritage you met in this journey is alive today on Pulau Carey. Turn what you learned into real support.</p>
+      <!-- The whole panel scrolls (short phone screens could not fit the cards) -->
+      <div class="modal-scroll">
+        <div class="portal-hero">
+          <h2 id="portal-title">Support the Mah Meri Artisans</h2>
+          <p>The heritage you met in this journey is alive today on Pulau Carey. Turn what you learned into real support.</p>
+        </div>
+        <div id="portal-badge" class="portal-badge"></div>
+        <div class="community-grid" id="portal-cards"></div>
+        <p class="portal-note">Links open in a new tab.</p>
       </div>
-      <div id="portal-badge" class="portal-badge"></div>
-      <div class="community-grid" id="portal-cards"></div>
-      <p class="portal-note">Links open in a new tab.</p>
     </div>
   </div>
 
@@ -195,17 +198,17 @@
   <div id="toast" role="status" aria-live="polite"></div>
 
   <!-- Scripts (classic scripts, load order matters) -->
-  <script src="js/assets.js?v=15"></script>
-  <script src="js/content.js?v=15"></script>
-  <script src="js/state.js?v=15"></script>
-  <script src="js/audio.js?v=15"></script>
-  <script src="js/ui.js?v=15"></script>
-  <script src="js/display.js?v=15"></script>
-  <script src="js/dialogue.js?v=15"></script>
-  <script src="js/games/act1-gather.js?v=15"></script>
-  <script src="js/games/act2-weave.js?v=15"></script>
-  <script src="js/games/act3-carve.js?v=15"></script>
-  <script src="js/games/act4-rhythm.js?v=15"></script>
-  <script src="js/main.js?v=15"></script>
+  <script src="js/assets.js?v=16"></script>
+  <script src="js/content.js?v=16"></script>
+  <script src="js/state.js?v=16"></script>
+  <script src="js/audio.js?v=16"></script>
+  <script src="js/ui.js?v=16"></script>
+  <script src="js/display.js?v=16"></script>
+  <script src="js/dialogue.js?v=16"></script>
+  <script src="js/games/act1-gather.js?v=16"></script>
+  <script src="js/games/act2-weave.js?v=16"></script>
+  <script src="js/games/act3-carve.js?v=16"></script>
+  <script src="js/games/act4-rhythm.js?v=16"></script>
+  <script src="js/main.js?v=16"></script>
 </body>
 </html>
