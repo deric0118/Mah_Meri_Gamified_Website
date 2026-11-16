@@ -10,7 +10,7 @@
   const MOYANG = 'Moyang Tok Naning';
 
   // Helper: a dialogue line spoken by Moyang
-  const m = (text, pose) => ({ speaker: MOYANG, text: text, pose: pose || 'speak' });
+  const m = (text, pose, audioPath) => ({ speaker: MOYANG, text: text, pose: pose || 'speak', audio: audioPath });
 
   window.CONTENT = {
     actNames: {
@@ -86,59 +86,87 @@
     },
 
     /* ------------------------------ Dialogue ------------------------------ */
-    // act1..act3 play inside the game scene when the act opens; act4 plays on
-    // the map before the dance starts (see SCENE_INTRO_ACTS in main.js).
+    // act1..act4 play inside the game scene when the act opens
+    // (see SCENE_INTRO_ACTS in main.js).
     dialogues: {
       prologue: [
-        m('Welcome, my child, to Pulau Carey. I am Moyang Tok Naning, a spirit of the ancestors. They have grown quiet… The People of the Forest.'),
-        m('Hari Moyang, our Ancestor\'s Day, is near. But the threads of our heritage are slipping away, and the crafts we used to offer to the spirits have also been lost.'),
-        m('My child, you have to walk four ancient paths with me: Gathering, Weaving, Carving, and the Dance. Each to restore a piece of our celebration.'),
-        m('First, we begin at the Mangrove Swamp. Now, tap the glowing marker on the map.', 'stand')
+        m('Welcome, my child, to Pulau Carey. I am Moyang Tok Naning, a spirit of the ancestors. They have grown quiet… The People of the Forest.', 
+          'speak', 'assets/audio/prologue/prologue_1.mp3'),
+        m('Hari Moyang, our Ancestor\'s Day, is near. But the threads of our heritage are slipping away, and the crafts we used to offer to the spirits have also been lost.', 
+          'stand', 'assets/audio/prologue/prologue_2.mp3'),
+        m('My child, you have to walk four ancient paths with me: Gathering, Weaving, Carving, and the Dance. Each to restore a piece of our celebration.', 
+          'stand', 'assets/audio/prologue/prologue_3.mp3'),
+        m('First, we begin at the Mangrove Swamp. Now, tap the glowing marker on the map.', 
+          'stand', 'assets/audio/prologue/prologue_4.mp3')
       ],
 
       act1: [
-        m('Before we craft, we must ask the forest. Gather the coastal pandanus leaves for weaving, and look near the roots for fallen Nyireh Batu wood.'),
-        m('Take only what nature provides: three pandanus leaves and two pieces of wood. Look closely, they hide among the roots.', 'stand')
+        m('Before we craft, we must ask the forest. Gather the coastal pandanus leaves for weaving, and look near the roots for fallen Nyireh Batu wood.',
+          'speak', 'assets/audio/act1/act1_dialogue1.mp3'),
+        m('Take only what nature provides: three pandanus leaves and two pieces of wood. Look closely, they hide among the roots.', 
+          'stand', 'assets/audio/act1/act1_dialogue2.mp3')
       ],
       act1_outro: [
-        m('The mangroves have been generous. For generations our people have lived from these coasts and forests as fishermen, gatherers and craftspeople.'),
-        m('Now, quickly, bring the pandanus to the Weaver\'s Hut.', 'stand')
+        m('The mangroves have been generous. For generations our people have lived from these coasts and forests as fishermen, gatherers and craftspeople.',
+          'speak', 'assets/audio/act1/act1_outro1.mp3'
+        ),
+        m('Now, quickly, bring the pandanus to the Weaver\'s Hut.', 
+          'stand', 'assets/audio/act1/act1_outro2.mp3')
       ],
 
       act2: [
-        m('I have dried up the pandanus leaves and coloured them with red and black.'),
-        m('Interlock the natural and dyed strips to form the kelarai motif. First, a Tempok to guard your spirit, then a Sungu basket to hold our offerings.', 'stand')
+        m('I have dried up the pandanus leaves and coloured them with red and black.', 
+          'speak', 'assets/audio/act2/act2_dialogue1.mp3'),
+        m('Interlock the natural and dyed strips to form the kelarai motif. First, a Tempok to guard your spirit, then a Sungu basket to hold our offerings.', 
+          'stand', 'assets/audio/act2/act2_dialogue2.mp3')
       ],
       act2_switch: [
-        m('The Tempok is finished! Now the Sungu basket. Its thorny points protect the rice seeds. This pattern also uses a dark-dyed strip.')
+        m('The Tempok is finished! Now the Sungu basket. Its thorny points protect the rice seeds. This pattern also uses a dark-dyed strip.', 
+          'stand', 'assets/audio/act2/act2_switch.mp3')
       ],
       act2_outro: [
-        m('Kelarai patterns are more than decoration: they welcome guests and protect the harvest.'),
-        m('Now take the Nyireh Batu wood to the Carver\'s Bench.', 'stand')
+        m('Kelarai patterns are more than decoration: they welcome guests and protect the harvest.', 
+          'speak', 'assets/audio/act2/act2_outro1.mp3'),
+        m('Now take the Nyireh Batu wood to the Carver\'s Bench.', 
+          'stand', 'assets/audio/act2/act2_outro2.mp3')
       ],
 
       act3: [
-        m('Mah Meri carvers are known around the world. Every figure tells the story of a spirit: of the forest, the sea, or our ancestors.'),
-        m('First, learn the carvings. Then we will release a spirit from the wood.'),
-        m('There are 16 cards in total, holding 8 pairs of sacred carvings. Choose two, unveil their forms, and learn the hidden knowledge of the ancestors.', 'stand')
+        m('Mah Meri carvers are known around the world. Every figure tells the story of a spirit: of the forest, the sea, or our ancestors.', 
+          'speak', 'assets/audio/act3/act3_dialogue1.mp3'),
+        m('First, learn the carvings. Then we will release a spirit from the wood.', 
+          'speak', 'assets/audio/act3/act3_dialogue2.mp3'),
+        m('There are 16 cards in total, holding 8 pairs of sacred carvings. Choose two, unveil their forms, and learn the hidden knowledge of the ancestors.', 
+          'stand', 'assets/audio/act3/act3_dialogue3.mp3')
       ],
       act3_chisel: [
-        m('You know the carvings now. Take up the pahat, the carver\'s chisel.'),
-        m('Do not force the wood. Drag across the block to chisel gently, and release the spirit waiting inside.', 'stand')
+        m('You know the carvings now. Take up the pahat, the carver\'s chisel.',
+          'speak', 'assets/audio/act3/act3_chisel1.mp3'
+        ),
+        m('Do not force the wood. Drag across the block to chisel gently, and release the spirit waiting inside.', 
+          'stand', 'assets/audio/act3/act3_chisel2.mp3')
       ],
       act3_outro: [
-        m('Now that we\'ve done the carving.'),
-        m('My child, you are more than ready. It\'s time to join our people at the Ceremonial Fire for the Tarian Jo\'oh.', 'stand')
+        m('Now that we\'ve done the carving.',
+          'speak', 'assets/audio/act3/act3_outro1.mp3'),
+        m('My child, you are more than ready. It\'s time to join our people at the Ceremonial Fire for the Tarian Jo\'oh.', 
+          'stand', 'assets/audio/act3/act3_outro2.mp3')
       ],
 
       act4: [
-        m('The crafts are ready! The dancers wear the carved masks and woven headbands, and the tuntung bamboo stampers are calling.'),
-        m('Strike the tuntung to the rhythm of the Tarian Jo\'oh. Fill the Spirit Harmony before the song ends!', 'stand')
+        m('The crafts are ready! The dancers wear the carved masks and woven headbands, and the tuntung bamboo stampers are calling.',
+          'speak', 'assets/audio/act4/act4_dialogue1.mp3'
+        ),
+        m('Strike the tuntung to the rhythm of the Tarian Jo\'oh. Fill the Spirit Harmony before the song ends!', 
+          'stand', 'assets/audio/act4/act4_dialogue2.mp3')
       ],
 
       ending: [
-        m('Everything you gathered, wove and carved now rests in the Spirit Archive. Open the Museum to learn the real history behind each piece.'),
-        m('Remember: our heritage is living, not only virtual. Visit the Mah Meri on Pulau Carey and support the artisans who keep these crafts alive.', 'stand')
+        m('Everything you gathered, wove and carved now rests in the Spirit Archive. Open the Museum to learn the real history behind each piece.',
+          'speak', 'assets/audio/ending/ending1.mp3'
+        ),
+        m('Remember: our heritage is living, not only virtual. Visit the Mah Meri on Pulau Carey and support the artisans who keep these crafts alive.', 
+          'stand', 'assets/audio/ending/ending2.mp3')
       ]
     },
 

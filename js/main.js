@@ -24,6 +24,9 @@
     if (id !== 'title-screen') {
       const tv = $('bg-video');
       if (tv && !tv.paused) tv.pause();
+      AudioFX.stopMusic();
+    } else {
+      AudioFX.startMusic('title');
     }
     if (id !== 'cutscene-screen') {
       const cv = $('cutscene-video');
@@ -236,6 +239,8 @@
     };
     if (upscaler) rafId = requestAnimationFrame(renderLoop);
 
+    let currentVoiceover = null;
+
     const cleanup = () => {
       cancelAnimationFrame(rafId);
       video.removeEventListener('playing', handlePlaying);
@@ -245,6 +250,15 @@
       if (skipBtn) skipBtn.onclick = null;
       clearSubtitle();
       setSubtitleShade(false);
+
+      // BULLETPROOF STOP: Kills the audio completely when you click skip      
+      if (currentVoiceover) {
+        currentVoiceover.pause();
+        currentVoiceover.currentTime = 0;
+        currentVoiceover.removeAttribute('src');
+        currentVoiceover = null;
+      }
+
     };
 
     const finish = () => {
@@ -296,6 +310,15 @@
         finish();
         return;
       }
+
+      // BULLETPROOF STOP: Kill any orphaned audio from the previous video
+      if (currentVoiceover) {
+        currentVoiceover.pause();
+        currentVoiceover.currentTime = 0;
+        currentVoiceover.removeAttribute('src');
+        currentVoiceover = null;
+      }
+
       // Reset to transparent immediately before loading the next video so it fades in slowly
       displayEl.style.transition = 'none';
       displayEl.classList.remove('fade-in', 'fade-out');
@@ -306,6 +329,26 @@
 
       // Always keep cutscenes muted (audio will be added separately later)
       video.muted = true;
+
+      // NEW: DYNAMIC AUDIO CONFIGURATION
+      // Pulls the audio config dynamically depending on which video is playing
+      const audioConfigs = (opts && opts.audio) ? opts.audio : [];
+
+      // Check if there is an audio configuration for the current video index
+      if (audioConfigs[idx]) {
+        const config = audioConfigs[idx];
+        currentVoiceover = new Audio(config.file);
+        
+        // Let JavaScript calculate the perfect speed mathematically
+        currentVoiceover.playbackRate = config.original / config.target; 
+        currentVoiceover.preservesPitch = true; 
+        
+        if (!State.data.muted) {
+          currentVoiceover.play().catch(e => console.log("Voiceover blocked by browser:", e));
+        }
+      }
+      
+
       const entry = list[idx];
       video.src = Array.isArray(entry) ? entry[altIdx] : entry;
       video.load();
@@ -354,6 +397,9 @@
     const startBtn = $('btn-start-invisible');
     const skipBtn = $('btn-skip-intro');
     let revealed = false;
+    // Title theme: plays right away if the browser allows sound, otherwise from the
+    // first click / tap / key press (browser autoplay rule; see AudioFX.startMusic).
+    AudioFX.startMusic('title');
 
     const reveal = () => {
       if (revealed) return;
@@ -411,7 +457,14 @@
         updateHud();
         UI.toast('Tap the glowing Mangrove Swamp marker to begin.');
       });
-    }, { subtitles: openingSubs });
+    }, { subtitles: openingSubs,
+      // ADD THIS: Your opening video audio mapping
+      audio: [
+        { file: 'assets/audio/opening_video/opening_video1.mp3', original: 16, target: 12 },
+        { file: 'assets/audio/opening_video/opening_video2.mp3', original: 11, target: 13 },
+        { file: 'assets/audio/opening_video/opening_video3.mp3', original: 12, target: 10 }
+      ] 
+    });
   }
 
   function continueJourney() {
@@ -469,9 +522,8 @@
   }
 
   /* ============================ Acts ============================ */
-  // Acts whose intro dialogue plays inside the game scene (script: NPC Swamp / Hut / Carver).
-  // Act IV's intro stays on the map, before the dance begins (script: NPC Map).
-  const SCENE_INTRO_ACTS = [1, 2, 3];
+  // Acts whose intro dialogue plays inside the game scene (Swamp / Hut / Carver / Ceremonial Fire).
+  const SCENE_INTRO_ACTS = [1, 2, 3, 4];
 
   function launchMiniGame(n, intro) {
     const game = window.Games && window.Games[n];
@@ -504,6 +556,13 @@
     const endCutscene = window.ASSETS && ASSETS.cutscenes && ASSETS.cutscenes.actEnd && ASSETS.cutscenes.actEnd[n];
     const endSubs = CONTENT.cutsceneSubtitles && CONTENT.cutsceneSubtitles.actEnd && CONTENT.cutsceneSubtitles.actEnd[n];
 
+    const actEndAudio = {
+      1: [{ file: 'assets/audio/actEnd/actEnd1.mp3', original: 10, target: 10 }],
+      2: [{ file: 'assets/audio/actEnd/actEnd2.mp3', original: 10, target: 10 }],
+      3: [{ file: 'assets/audio/actEnd/actEnd3.mp3', original: 10, target: 10 }],
+      4: [{ file: 'assets/audio/actEnd/actEnd4.mp3', original: 10, target: 10 }]
+    };
+
     const returnToMapAndOutro = () => {
       goMap();
       if (!firstTime && n !== 4) return;
@@ -529,7 +588,7 @@
           // For Act IV (final game), play act4_end cutscene after clicking Celebrate, fade out slowly, then go back to the map
           if (n === 4 && endCutscene) {
             unmountGame();
-            playCutscenes([endCutscene], returnToMapAndOutro, { keepLastFrame: false, subtitles: [endSubs] });
+            playCutscenes([endCutscene], returnToMapAndOutro, { keepLastFrame: false, subtitles: [endSubs], audio: actEndAudio[n] });
           } else {
             returnToMapAndOutro();
           }
@@ -539,7 +598,7 @@
 
     if (n !== 4 && endCutscene) {
       unmountGame();
-      playCutscenes([endCutscene], showReward, { keepLastFrame: true, subtitles: [endSubs] });
+      playCutscenes([endCutscene], showReward, { keepLastFrame: true, subtitles: [endSubs], audio: actEndAudio[n] });    
     } else {
       showReward();
     }
@@ -771,8 +830,15 @@
     document.querySelectorAll('.museum-tabs .tab').forEach((b) =>
       b.addEventListener('click', () => switchMuseumTab(b.dataset.tab)));
 
-    // Any first interaction unlocks audio (browser autoplay rules)
-    window.addEventListener('pointerdown', () => AudioFX.unlock(), { once: true });
+    // The first interaction unlocks audio (browser autoplay rules). Touch screens only grant
+    // permission on pointerup/touchend (not pointerdown), so keep listening to all of these
+    // until sound is actually running, then stop.
+    const unlockEvents = ['pointerdown', 'pointerup', 'touchend', 'click', 'keydown'];
+    const unlockAudio = () => {
+      AudioFX.unlock();
+      if (AudioFX.ready()) unlockEvents.forEach((ev) => window.removeEventListener(ev, unlockAudio, true));
+    };
+    unlockEvents.forEach((ev) => window.addEventListener(ev, unlockAudio, true));
 
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {

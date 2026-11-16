@@ -9,6 +9,10 @@
   let lines = [], idx = 0, onDone = null, timer = null, typing = false;
   let overlay, textEl, speakerEl, avatarEl, counterEl;
 
+  // NEW: Audio tracker for Moyang's voice
+  let currentVoiceover = null;
+  let startTimer = null; // Tracks the opening delay
+
   function els() {
     overlay = overlay || document.getElementById('dialogue-overlay');
     textEl = textEl || document.getElementById('dialogue-textbox');
@@ -17,16 +21,37 @@
     counterEl = counterEl || document.getElementById('dialogue-counter');
   }
 
+  // BULLETPROOF AUDIO STOPPER
+  function stopAudio() {
+    if (currentVoiceover) {
+      currentVoiceover.muted = true; // Silence it instantly
+      currentVoiceover.pause();
+      currentVoiceover.removeAttribute('src'); // Completely sever the file link
+      currentVoiceover.load(); // Force the browser to flush the audio buffer!
+      currentVoiceover = null;
+    }
+  }
+
   function start(seq, done) {
     els();
     lines = Array.isArray(seq) ? seq : [];
     idx = 0;
     onDone = done || null;
+
+    clearTimeout(startTimer); // Clear any pending delays from previous skips
+
     if (!lines.length) { finish(); return; }
+
+    // Clear the text box so it is safely blank while loading
+    textEl.textContent = '';
+
     overlay.classList.remove('hidden');
     // Lets game scenes hide their interactive bits (items, hint button) while Moyang talks.
     document.body.classList.add('dialogue-open');
-    render();
+
+    startTimer = setTimeout(() => {
+      if (isOpen()) render();
+    }, 800);
   }
 
   function render() {
@@ -36,6 +61,32 @@
     avatarEl.src = window.ASSETS.moyang.speak;
     avatarEl.classList.add('talking');
     counterEl.textContent = lines.length > 1 ? (idx + 1) + ' / ' + lines.length : '';
+
+    // NEW: Stop any previously playing dialogue audio
+    stopAudio();
+
+    if (line.audio && window.State && !window.State.data.muted) {
+      // 1. Create the new audio and make it the active one
+      const audioObj = new Audio(line.audio);
+      currentVoiceover = audioObj; 
+
+      // 2. Ask the browser to play it (this creates a "Promise")
+      const playPromise = audioObj.play();
+      
+      if (playPromise !== undefined) {
+        playPromise.then(() => {
+          // THE FIX: The browser just successfully started playing the audio.
+          // If the user clicked "Skip" while the browser was thinking, currentVoiceover 
+          // was set to null. If they don't match, we kill it instantly!
+          if (currentVoiceover !== audioObj) {
+            audioObj.muted = true;
+            audioObj.pause();
+            audioObj.removeAttribute('src');
+            audioObj.load();
+          }
+        }).catch(e => console.log("Dialogue audio skipped or blocked:", e));
+      }
+    }
 
     clearInterval(timer);
     textEl.textContent = '';
@@ -60,7 +111,13 @@
   function next() {
     if (!isOpen()) return;
     if (window.AudioFX) AudioFX.play('click');
-    if (typing) { endTyping(lines[idx]); return; }
+
+    if (typing) { 
+      endTyping(lines[idx]); 
+      stopAudio(); // Stop the audio if the user skips to the end of the line
+      return; 
+    }
+
     idx += 1;
     render();
   }
@@ -74,7 +131,11 @@
   function finish() {
     els();
     clearInterval(timer);
+    clearTimeout(startTimer); // Prevents the audio from starting if you skip during the delay
     typing = false;
+
+    stopAudio(); // Stop any audio that is still playing when the dialogue ends
+
     overlay.classList.add('hidden');
     document.body.classList.remove('dialogue-open');
     const cb = onDone;
@@ -88,7 +149,11 @@
     els();
     onDone = null;
     clearInterval(timer);
+    clearTimeout(startTimer);
     typing = false;
+
+    stopAudio(); // Stop any audio that is still playing when the dialogue is cancelled
+    
     overlay.classList.add('hidden');
     document.body.classList.remove('dialogue-open');
   }
