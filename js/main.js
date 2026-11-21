@@ -559,7 +559,7 @@
     const actEndAudio = {
       1: [{ file: 'assets/audio/actEnd/actEnd1.mp3', original: 10, target: 10 }],
       2: [{ file: 'assets/audio/actEnd/actEnd2.mp3', original: 10, target: 10 }],
-      3: [{ file: 'assets/audio/actEnd/actEnd3.mp3', original: 7, target: 10 }],
+      3: [{ file: 'assets/audio/actEnd/actEnd3.mp3', original: 7, target: 9 }],
       4: [{ file: 'assets/audio/actEnd/actEnd4.mp3', original: 10, target: 10 }]
     };
 
