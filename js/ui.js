@@ -110,9 +110,10 @@
       return a;
     },
 
-    /** True while a modal, result panel or dialogue is covering the game. */
+    /** True while a modal, result panel, dialogue or the rotate-your-phone notice is covering the game. */
     isBlocked() {
-      return !!document.querySelector('.modal:not(.hidden), #result-overlay:not(.hidden), #dialogue-overlay:not(.hidden)');
+      return !!document.querySelector('.modal:not(.hidden), #result-overlay:not(.hidden), #dialogue-overlay:not(.hidden)') ||
+        !!(window.Display && Display.isBlocked());
     }
   };
 

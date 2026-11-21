@@ -9,6 +9,8 @@
   let activeGame = null;
   let museumTab = 'history';
   let museumOpenId = null;
+  // play() rejects with AbortError when pause() interrupts it (e.g. the rotate notice); that is not a failure.
+  const isAbort = (e) => !!e && e.name === 'AbortError';
 
   /* ============================ Router ============================ */
   function showView(id) {
@@ -229,6 +231,26 @@
     let altIdx = 0;
     let finished = false;
     let rafId = 0;
+    let currentVoiceover = null;
+
+    // Portrait phone: hold the video + narration behind the rotate notice, resume once sideways.
+    let heldByRotate = false;
+    let voiceWasPlaying = false;
+    const holdForRotate = (blocked) => {
+      if (finished) return;
+      if (blocked && !heldByRotate) {
+        heldByRotate = true;
+        voiceWasPlaying = !!currentVoiceover && !currentVoiceover.paused;
+        video.pause();
+        if (currentVoiceover) currentVoiceover.pause();
+      } else if (!blocked && heldByRotate) {
+        heldByRotate = false;
+        video.play().catch(() => {});
+        if (voiceWasPlaying && currentVoiceover && !State.data.muted) currentVoiceover.play().catch(() => {});
+      }
+    };
+    const handleRotate = (e) => holdForRotate(e.detail.blocked);
+    window.addEventListener('display:blocked', handleRotate);
 
     const renderLoop = () => {
       if (finished) return;
@@ -239,10 +261,9 @@
     };
     if (upscaler) rafId = requestAnimationFrame(renderLoop);
 
-    let currentVoiceover = null;
-
     const cleanup = () => {
       cancelAnimationFrame(rafId);
+      window.removeEventListener('display:blocked', handleRotate);
       video.removeEventListener('playing', handlePlaying);
       video.removeEventListener('timeupdate', handleTimeUpdate);
       video.removeEventListener('ended', handleEnded);
@@ -354,7 +375,12 @@
       video.load();
       const p = video.play();
       if (p && typeof p.catch === 'function') {
-        p.catch(handleError);
+        p.catch((e) => { if (!isAbort(e)) handleError(); });
+      }
+      // Started while the phone is upright (rare: a video ended or failed right as it turned)
+      if (window.Display && Display.isBlocked()) {
+        heldByRotate = false;
+        holdForRotate(true);
       }
     };
 
@@ -420,7 +446,22 @@
     src.addEventListener('error', fallback);
 
     const p = video.play();
-    if (p && typeof p.catch === 'function') p.catch(fallback);
+    if (p && typeof p.catch === 'function') p.catch((e) => { if (!isAbort(e)) fallback(); });
+
+    // Opened on an upright phone: keep the intro paused behind the rotate notice so the
+    // player still sees it once they turn the phone sideways.
+    let heldByRotate = false;
+    const holdForRotate = (blocked) => {
+      if (blocked && !heldByRotate && currentView === 'title-screen' && !video.paused && !video.ended) {
+        heldByRotate = true;
+        video.pause();
+      } else if (!blocked && heldByRotate) {
+        heldByRotate = false;
+        if (currentView === 'title-screen') video.play().catch((e) => { if (!isAbort(e)) reveal(); });
+      }
+    };
+    window.addEventListener('display:blocked', (e) => holdForRotate(e.detail.blocked));
+    if (window.Display && Display.isBlocked()) holdForRotate(true);
 
     setTimeout(() => { if (!revealed) skipBtn.classList.remove('hidden'); }, 1200);
     skipBtn.addEventListener('click', () => {

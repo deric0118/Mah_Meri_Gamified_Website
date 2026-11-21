@@ -19,13 +19,20 @@
   --red: #c2452f;
   --green: #4f7a3a;
   --panel: rgba(20, 14, 9, 0.94);
-  --stage-w: min(100vw, calc(100vh * 16 / 9));
-  --stage-h: min(100vh, calc(100vw * 9 / 16));
+  /* Visible height. Plain 100vh on mobile includes the space under the browser's
+     address bar, which pushed the bottom of the 16:9 stage off screen. */
+  --app-h: 100vh;
+  --stage-w: min(100vw, calc(var(--app-h) * 16 / 9));
+  --stage-h: min(var(--app-h), calc(100vw * 9 / 16));
+}
+@supports (height: 100dvh) {
+  :root { --app-h: 100dvh; }
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 html, body { height: 100%; }
+html { background: var(--bg); }
 
 body {
   font-family: Georgia, 'Times New Roman', serif;
@@ -125,8 +132,8 @@ kbd {
 .title-cover {
   position: absolute; left: 50%; top: 50%;
   transform: translate(-50%, -50%);
-  width: max(100vw, calc(100vh * 16 / 9));
-  height: max(100vh, calc(100vw * 9 / 16));
+  width: max(100vw, calc(var(--app-h) * 16 / 9));
+  height: max(var(--app-h), calc(100vw * 9 / 16));
 }
 
 #bg-video {
@@ -152,7 +159,11 @@ kbd {
   z-index: 10;
 }
 
-#btn-skip-intro, #btn-skip-cutscene { position: absolute; right: 20px; bottom: 20px; z-index: 11; font-size: 0.85rem; opacity: 0.8; }
+#btn-skip-intro, #btn-skip-cutscene {
+  position: absolute; z-index: 11;
+  right: max(20px, env(safe-area-inset-right)); bottom: max(20px, env(safe-area-inset-bottom));
+  font-size: 0.85rem; opacity: 0.8;
+}
 
 
 /* ------------------------------ Cutscene ------------------------------ */
@@ -260,8 +271,12 @@ kbd {
 .title-sub { font-style: italic; color: var(--teal); margin-bottom: 10px; }
 
 /* ------------------------------ HUD ------------------------------ */
+/* safe-area insets keep the HUD clear of the camera cutout in full screen */
 #hud {
-  position: fixed; top: 10px; left: 10px; right: 10px;
+  position: fixed;
+  top: max(10px, env(safe-area-inset-top));
+  left: max(10px, env(safe-area-inset-left));
+  right: max(10px, env(safe-area-inset-right));
   display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;
   z-index: 100;
   pointer-events: none;
@@ -295,6 +310,12 @@ kbd {
 }
 .hud-btn:hover { background: var(--wood-mid); box-shadow: 0 0 10px rgba(77, 243, 229, 0.35); }
 .hud-btn-small { padding: 5px 9px; }
+.fs-icon {
+  width: 1.15em; height: 1.15em; flex-shrink: 0;
+  fill: none; stroke: var(--gold-bright); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round;
+}
+.fs-exit, #btn-fullscreen.is-on .fs-enter { display: none; }
+#btn-fullscreen.is-on .fs-exit { display: inline; }
 
 /* ------------------------------ Map ------------------------------ */
 #map-screen { background: #0d1410; }
@@ -303,8 +324,8 @@ kbd {
 .map-cover {
   position: absolute; left: 50%; top: 50%;
   transform: translate(-50%, -50%);
-  width: max(100vw, calc(100vh * 16 / 9));
-  height: max(100vh, calc(100vw * 9 / 16));
+  width: max(100vw, calc(var(--app-h) * 16 / 9));
+  height: max(var(--app-h), calc(100vw * 9 / 16));
 }
 #base-map-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; user-select: none; }
 .map-mist {
@@ -358,6 +379,14 @@ kbd {
   white-space: nowrap;
 }
 .pin-glow { position: absolute; z-index: 1; inset: -8px; border-radius: 50%; pointer-events: none; }
+/* The Ceremonial Fire pin sits between the Weaver's Hut (up-right) and the Carver's Bench
+   (down-left). Labels under those pins ran into it, so these two labels go to the right. */
+#pin-act2 .pin-label, #pin-act4 .pin-label {
+  top: 50%; left: 100%;
+  transform: translateY(-50%);
+  margin: 0 0 0 8px;
+}
+.map-pin.active { z-index: 11; } /* the current goal is never hidden under a neighbour */
 
 .map-pin.active .pin-glow { border: 4px solid var(--teal); animation: pulse 1.5s infinite; }
 .map-pin.active .pin-marker { border-color: var(--teal); box-shadow: 0 0 22px rgba(77, 243, 229, 0.65); }
@@ -378,8 +407,6 @@ kbd {
   60% { translate: -4px 0; }
   80% { translate: 4px 0; }
 }
-
-.rotate-hint { display: none; }
 
 /* ------------------------------ Game stage ------------------------------ */
 #game-stage-screen { background: radial-gradient(ellipse at center, #241a10 0%, #0b0805 100%); }
@@ -798,9 +825,9 @@ body.dialogue-open .act4 .rhythm-panel { opacity: 0; visibility: hidden; pointer
 /* ------------------------------ Dialogue ------------------------------ */
 .dialogue-box {
   position: fixed;
-  bottom: 18px; left: 50%;
+  bottom: max(18px, env(safe-area-inset-bottom)); left: 50%;
   transform: translateX(-50%);
-  width: min(92vw, 860px);
+  width: min(92vw, 860px, calc(100vw - 2 * max(env(safe-area-inset-left), env(safe-area-inset-right)) - 16px));
   min-height: 130px;
   background: linear-gradient(180deg, rgba(28, 20, 12, 0.97), rgba(16, 11, 7, 0.97));
   border: 3px solid var(--gold);
@@ -835,7 +862,7 @@ body.dialogue-open .act4 .rhythm-panel { opacity: 0; visibility: hidden; pointer
 }
 .result-card {
   width: min(86vw, 580px);
-  max-height: 88vh;
+  max-height: calc(var(--app-h) * 0.88);
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
   text-align: center;
   padding: 12px 22px 16px;
@@ -850,12 +877,13 @@ body.dialogue-open .act4 .rhythm-panel { opacity: 0; visibility: hidden; pointer
 .modal {
   position: fixed; inset: 0; z-index: 140;
   display: flex; align-items: center; justify-content: center;
-  padding: 70px 16px 16px;
+  padding: 70px max(16px, env(safe-area-inset-right)) 16px max(16px, env(safe-area-inset-left));
   background: rgba(5, 4, 2, 0.72);
   backdrop-filter: blur(3px);
   animation: fadeIn 0.25s ease;
 }
 .modal-content {
+  --pad-y: 24px; --pad-x: 26px;
   position: relative;
   width: min(100%, 520px);
   max-height: 100%;
@@ -863,7 +891,7 @@ body.dialogue-open .act4 .rhythm-panel { opacity: 0; visibility: hidden; pointer
   background: linear-gradient(180deg, #21170e, #140e08);
   border: 3px solid var(--gold);
   border-radius: 14px;
-  padding: 24px 26px;
+  padding: var(--pad-y) var(--pad-x);
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.9);
 }
 .modal-wide { width: min(100%, 980px); }
@@ -878,9 +906,20 @@ body.dialogue-open .act4 .rhythm-panel { opacity: 0; visibility: hidden; pointer
   color: var(--text);
   font-size: 1.1rem;
   cursor: pointer;
+  z-index: 2;
 }
 .modal-close:hover { background: var(--wood-mid); }
 .modal-scroll-inner { overflow-y: auto; min-height: 0; padding-right: 4px; }
+/* Whole-panel scroller: spans the panel edge to edge so a full-bleed hero can scroll with it,
+   while the close button (outside it) stays put. */
+.modal-scroll {
+  flex: 1 1 auto; min-height: 0;
+  margin: calc(-1 * var(--pad-y)) calc(-1 * var(--pad-x));
+  padding: var(--pad-y) var(--pad-x);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-radius: 11px;
+}
 
 /* Museum */
 .museum-tabs { display: flex; gap: 8px; margin-bottom: 14px; }
@@ -929,8 +968,8 @@ body.dialogue-open .act4 .rhythm-panel { opacity: 0; visibility: hidden; pointer
 
 /* Portal */
 .portal-hero {
-  margin: -24px -26px 14px;
-  padding: 44px 26px 22px;
+  margin: calc(-1 * var(--pad-y)) calc(-1 * var(--pad-x)) 14px;
+  padding: 44px var(--pad-x) 22px;
   border-radius: 11px 11px 0 0;
   background: linear-gradient(180deg, rgba(10, 8, 5, 0.35), rgba(20, 14, 8, 0.96)), url('../assets/images/Game%204%20Rhythm%20Game/tarian_jooh.jpg') center 40% / cover;
 }
@@ -941,7 +980,7 @@ body.dialogue-open .act4 .rhythm-panel { opacity: 0; visibility: hidden; pointer
   font-size: 0.88rem; opacity: 0.85;
 }
 .portal-badge.earned { border-style: solid; border-color: var(--gold-bright); background: rgba(230, 196, 106, 0.15); color: var(--gold-bright); opacity: 1; }
-.community-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; overflow-y: auto; }
+.community-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
 .cta-card {
   display: flex; flex-direction: column; gap: 8px; align-items: flex-start;
   background: rgba(60, 40, 22, 0.55);
@@ -976,6 +1015,70 @@ body.dialogue-open .act4 .rhythm-panel { opacity: 0; visibility: hidden; pointer
 }
 #toast.show { opacity: 1; transform: translate(-50%, 0); }
 
+/* ------------------------------ Rotate-your-phone notice ------------------------------ */
+/* Covers everything on portrait touch screens (media query kept in sync with js/display.js). */
+#rotate-overlay { display: none; }
+@media (orientation: portrait) and (hover: none) and (pointer: coarse) {
+  #rotate-overlay {
+    position: fixed; inset: 0; z-index: 1000;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+    padding: max(24px, env(safe-area-inset-top)) 28px max(24px, env(safe-area-inset-bottom));
+    text-align: center;
+    color: var(--text);
+    background:
+      radial-gradient(ellipse at 50% 36%, rgba(77, 243, 229, 0.13), transparent 58%),
+      radial-gradient(ellipse at 50% 100%, rgba(123, 58, 36, 0.35), transparent 60%),
+      var(--bg);
+    animation: fadeIn 0.3s ease;
+  }
+}
+.rotate-visual { position: relative; width: 160px; height: 160px; margin-bottom: 6px; }
+.rotate-arrows {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  fill: none; stroke: var(--teal); stroke-width: 4; stroke-linecap: round; stroke-linejoin: round;
+  filter: drop-shadow(0 0 6px rgba(77, 243, 229, 0.55));
+  animation: rotateArrows 2.8s ease-in-out infinite;
+}
+.rotate-phone {
+  position: absolute; left: 50%; top: 50%;
+  width: 54px; height: 92px; margin: -46px 0 0 -27px;
+  padding: 9px 4px 11px;
+  background: var(--wood-dark);
+  border: 3px solid var(--gold-bright);
+  border-radius: 11px;
+  box-shadow: 0 0 18px rgba(230, 196, 106, 0.35);
+  animation: rotatePhone 2.8s ease-in-out infinite;
+}
+.rotate-phone::before { /* speaker slot */
+  content: ''; position: absolute; top: 3px; left: 50%;
+  width: 14px; height: 2px; margin-left: -7px;
+  border-radius: 2px; background: var(--gold); opacity: 0.7;
+}
+.rotate-phone-screen {
+  display: block; width: 100%; height: 100%; border-radius: 3px;
+  background: radial-gradient(circle, rgba(77, 243, 229, 0.38), rgba(77, 243, 229, 0.06) 72%), #0d1410;
+}
+#rotate-title {
+  color: var(--gold-bright);
+  font-size: 1.55rem; letter-spacing: 0.02em;
+  text-shadow: 0 0 16px rgba(77, 243, 229, 0.3), 0 2px 4px #000;
+}
+#rotate-text { max-width: 21em; font-size: 1rem; line-height: 1.5; opacity: 0.9; }
+#btn-rotate-fullscreen { margin-top: 6px; }
+.rotate-tip { max-width: 21em; font-size: 0.85rem; line-height: 1.45; color: var(--teal); opacity: 0.85; }
+/* portrait → sideways (clockwise), hold, fade, repeat */
+@keyframes rotatePhone {
+  0% { transform: rotate(0deg); opacity: 0; }
+  10%, 28% { transform: rotate(0deg); opacity: 1; border-color: var(--gold-bright); box-shadow: 0 0 18px rgba(230, 196, 106, 0.35); }
+  55%, 86% { transform: rotate(90deg); opacity: 1; border-color: var(--teal); box-shadow: 0 0 26px rgba(77, 243, 229, 0.6); }
+  100% { transform: rotate(90deg); opacity: 0; border-color: var(--teal); }
+}
+@keyframes rotateArrows {
+  0%, 22% { opacity: 0.3; transform: rotate(-14deg); }
+  52% { opacity: 1; transform: rotate(0deg); }
+  86%, 100% { opacity: 0.3; transform: rotate(0deg); }
+}
+
 /* ------------------------------ Responsive ------------------------------ */
 @media (max-width: 900px), (max-height: 520px) {
   .hud-label { display: none; }
@@ -986,18 +1089,22 @@ body.dialogue-open .act4 .rhythm-panel { opacity: 0; visibility: hidden; pointer
 }
 
 @media (max-width: 760px) {
-  .dialogue-box { padding: 12px 14px 10px 100px; min-height: 110px; bottom: 10px; }
+  .dialogue-box { padding: 12px 14px 10px 100px; min-height: 110px; bottom: max(10px, env(safe-area-inset-bottom)); }
   .dialog-avatar { width: 96px; }
   .dialogue-text { font-size: 0.92rem; }
   .pin-marker { width: 48px; height: 48px; font-size: 1.4rem; }
   .pin-label { font-size: 0.72rem; }
   .museum-detail-body { grid-template-columns: 1fr; }
-  .modal-content { padding: 18px; }
-  .portal-hero { margin: -18px -18px 12px; padding: 40px 18px 18px; }
+  .modal-content { --pad-y: 18px; --pad-x: 18px; }
+  .portal-hero { padding-top: 40px; padding-bottom: 18px; margin-bottom: 12px; }
 }
 
 @media (max-height: 520px) {
-  #hud { top: 6px; left: 6px; right: 6px; }
+  #hud {
+    top: max(6px, env(safe-area-inset-top));
+    left: max(6px, env(safe-area-inset-left));
+    right: max(6px, env(safe-area-inset-right));
+  }
   /* Short screens: instructions already come from Moyang; keep the top clear for the HUD */
   .stage-banner { display: none; }
   .rhythm-top { top: 48px; padding: 4px 10px; }
@@ -1007,19 +1114,26 @@ body.dialogue-open .act4 .rhythm-panel { opacity: 0; visibility: hidden; pointer
   .dialogue-text { font-size: 0.88rem; min-height: 2.6em; }
   .dialog-avatar { width: 90px; }
   .dialogue-box { padding-left: 96px; }
-  .modal { padding-top: 56px; }
+  /* Landscape phones: give panels the full height (the backdrop already covers the HUD) */
+  .modal {
+    padding-top: max(10px, env(safe-area-inset-top));
+    padding-bottom: max(10px, env(safe-area-inset-bottom));
+  }
+  .modal-content { --pad-y: 14px; --pad-x: 18px; }
+  .modal-content h2 { font-size: 1.3rem; }
+  .modal-close { top: 8px; right: 10px; width: 30px; height: 30px; font-size: 1rem; }
+  .portal-hero { padding-top: 16px; padding-bottom: 12px; margin-bottom: 10px; }
+  .portal-hero p { font-size: 0.9rem; }
+  .portal-badge { font-size: 0.8rem; margin-bottom: 10px; }
+  /* The map shrinks with the screen height, so the pins must too or they pile onto each other */
+  .pin-marker { width: 46px; height: 46px; font-size: 1.35rem; border-width: 2.5px; }
+  .pin-label { font-size: 0.72rem; padding: 3px 8px; margin-top: 5px; }
 }
 
-/* Portrait phones: show the whole map (contain) and suggest rotating */
+/* Tall windows (e.g. a narrow desktop window): show the whole map instead of cropping it.
+   Portrait phones and tablets get the rotate notice instead (see #rotate-overlay). */
 @media (orientation: portrait) {
   .map-cover { width: 100vw; height: calc(100vw * 9 / 16); }
-  .rotate-hint {
-    display: block;
-    position: absolute; left: 50%; bottom: 24%;
-    transform: translateX(-50%);
-    background: var(--panel); border: 1px solid var(--gold); border-radius: 20px;
-    padding: 6px 14px; font-size: 0.8rem; white-space: nowrap;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {

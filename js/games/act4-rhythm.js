@@ -88,8 +88,12 @@ window.Games[4] = (function () {
     };
     window.addEventListener('keydown', keyHandler);
 
-    visHandler = () => { if (document.hidden && running) abort(); };
+    // Leaving the tab, or turning a phone upright (rotate notice), stops the song.
+    visHandler = () => {
+      if (running && (document.hidden || (window.Display && Display.isBlocked()))) abort();
+    };
     document.addEventListener('visibilitychange', visHandler);
+    window.addEventListener('display:blocked', visHandler);
 
     host.appendChild(root);
     resetRun();
@@ -313,7 +317,10 @@ window.Games[4] = (function () {
     (timers || []).forEach(clearTimeout);
     timers = [];
     if (keyHandler) window.removeEventListener('keydown', keyHandler);
-    if (visHandler) document.removeEventListener('visibilitychange', visHandler);
+    if (visHandler) {
+      document.removeEventListener('visibilitychange', visHandler);
+      window.removeEventListener('display:blocked', visHandler);
+    }
     keyHandler = null; visHandler = null;
     if (root) {
       const v = root.querySelector('video');
