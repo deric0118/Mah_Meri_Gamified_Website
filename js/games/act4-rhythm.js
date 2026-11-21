@@ -143,6 +143,7 @@ window.Games[4] = (function () {
   }
 
   function begin() {
+    if (UI.isBlocked()) return; // e.g. Moyang's intro dialogue is still open
     AudioFX.unlock();
     AudioFX.play('click');
     startPanel.classList.add('hidden');
